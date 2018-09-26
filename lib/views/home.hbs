@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Pullie | A GitHub App that makes your PRs better</title>
+    <link rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+      integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/prism-coy.css" />
+    <style type="text/css">
+      section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #eaeaea;
+      }
+      section ol:last-child {
+        margin-bottom: 0;
+      }
+      figure > :not(figcaption) {
+        border-left: 1px solid #eaeaea;
+        padding-left: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <nav class="navbar navbar-dark fixed-top navbar-expand-lg bg-dark">
+        <div class="container">
+          <a href="/" class="navbar-brand">Pullie</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <section class="jumbotron" style="margin-top: 75px;">
+        <img class="float-right" src="/static/pullie.svg" style="width: 256px" alt="Pullie logo" />
+        <h1 class="display-4">Hi, I'm Pullie!</h1>
+        <p class="lead">I'm a GitHub App that helps make your pull requests better.</p>
+        <hr class="my-4" style="margin-right: 266px;" />
+        <p>I run as a GitHub App and receive a webhook call whenever a pull request is made against a repo on which I'm
+          installed. Plugins provide handy functionality like linking to Jira tickets, requesting reviews, and
+          commenting about a missing required file change.</p>
+        <a href="#getstarted" class="btn btn-primary btn-large" role="button">Tell me more!</a>
+      </section>
+
+      <section id="getstarted">
+        <h2>Getting started</h2>
+        <p class="lead">You can start using Pullie in two simple steps.</p>
+        <ol>
+          <li><a href="#install">Install Pullie on your repo(s)</a></li>
+          <li><a href="#pullierc">Add a <code>.pullierc</code> file to each repo</a></li>
+        </ol>
+      </section>
+
+      <section id="install">
+        <h2>Step 1: Install Pullie</h2>
+        <p class="lead">Just click the button below to install Pullie onto your repo(s).</p>
+        <p>You can choose to install it on an entire org or just a few repositories. Without a <code>.pullierc</code>
+        file in the repo, Pullie won't do anything, so it's safe to install across an org and then fill in
+        <code>.pullierc</code> files later.</p>
+        <a href="{{APP_URL}}" class="btn btn-primary" role="button" target="_blank"
+          rel="noopener noreferrer">Install Pullie</a>
+      </section>
+
+      <section id="pullierc">
+        <h2>Step 2: Configure Pullie</h2>
+        <p class="lead">Pullie is configured per-repo in a <code>.pullierc</code> file at the repo's root.</p>
+        <p>The <code>.pullierc</code> file is just a simple JSON configuration file. For now, it just sets the list of
+          plugins that should be run on the repo for new PRs. Just toss this file in the root of your repo:</p>
+        
+        <figure class="figure">
+<pre><code>{{#code}}{
+  "plugins": [
+    "jira",
+    {
+      "plugin": "requiredFile",
+      "config": {
+        "files": [
+          {
+            "path": "CHANGELOG.md",
+            "message": "A `CHANGELOG.md` entry is required for changes to this repo. Please add an entry unless you have a good reason not to."
+          }
+        ]
+      }
+    },
+    {
+      "plugin": "reviewers",
+      "config": {
+        "howMany": 2
+      }
+    }
+  ]
+}{{/code}}</code></pre>
+          <figcaption class="figure-caption">Sample <code>.pullierc</code> configuration file</figcaption>
+        </figure>
+        <p class="lead" style="margin-top: 2rem;"> 
+          🎉 That's it! Your repo now has Pullie installed. For more details on configuring each plugin, keep reading.
+        </p>
+      </section>
+
+      <section id="plugins">
+        <h2>Plugin documentation</h2>
+        <p>The top-level export of the <code>.pullierc</code> file must be an object. Its only field must be entitled
+          <code>plugins</code> and be set to an array of plugin configurations.</p>
+        <p>The plugin entries in the array are either strings or objects. For simple no-configuration plugins, you may
+          simply pass the string name of the plugin. To pass configuration data to the plugin, you must pass an object
+          with two fields: <code>plugin</code> &mdash; the name of the plugin, and <code>config</code> &mdash; a
+          configuration object. Each plugin's configuration object will be different.
+        </p>
+        
+        <h3>Jira</h3>
+        <p class="lead">The Jira plugin will scan your pull request's title for Jira ticket keys and add a comment to the
+          PR with link(s) to the ticket(s).
+        </p>
+        <p>Ticket keys need to be in the form <code>PROJECT-12345</code>. More than one ticket can be listed.</p>
+        <h4>Configuration</h4>
+        <p>The Jira plugin takes no configuration. Just list it as a string in your <code>.pullierc</code>:</p>
+        <figure class="figure">
+<pre><code>{{#code}}{
+  "plugins": [
+    "jira"
+  ]
+}{{/code}}</code></pre>
+        <figcaption class="figure-caption">Sample Jira plugin config</figcaption>
+        </figure>
+
+        <h3>Required File</h3>
+        <p class="lead">The Required File plugin will ensure that the PR has a change to one or more specified files.</p>
+        <p>If a specified file is not present in the repo, it won't be required in PRs. File paths are relative to the
+          root of the repo. If a PR doesn't have a change to a specified file, Pullie will post a comment with either a
+          default message, or a custom one if configured.
+        </p>
+        <h4>Configuration</h4>
+        <p>The Required File plugin takes one configuration field &mdash; <code>files</code> &mdash; which contains an
+          array of either string file paths, or objects specifying file paths and custom messages. <code>message</code>
+          can contain GitHub-flavored markdown.</p>
+        <figure class="figure">
+<pre><code>{{#code}}{
+  "plugins": [
+    {
+      "plugin": "requiredFile",
+      "config": {
+        "files": [
+          "test/test.js",
+          {
+            "path": "CHANGELOG.md",
+            "message": "A `CHANGELOG.md` entry is required for changes to this repo. Please add an entry unless you have a good reason not to."
+          }
+        ]
+      }
+    }
+  ]
+}{{/code}}</code></pre>
+        <figcaption class="figure-caption">Sample Required File plugin config</figcaption>
+        </figure>
+
+        <h3>Reviewers</h3>
+        <p class="lead">The Reviewers plugin will request review from a set of candidate reviewers.</p>
+        <p>Reviewers can either be specified directly in the <code>.pullierc</code> file, or are pulled from the repo's
+          <code>package.json</code> file.</p>
+        <p>To use the <code>package.json</code> file, you must list reviewers in the <code>author</code>,
+          <code>maintainers</code>, and/or <code>contributors</code> fields, and those reviewers must be listed either
+          as objects with <code>email</code> specified, or as strings in the standard <code>Name
+            &lt;email@domain.com&gt;</code> format.
+        </p>
+        <h4>Configuration</h4>
+        <p>The Reviewers plugin takes two optional configuration fields: <code>howMany</code> and
+        <code>reviewers</code>.</p>
+        <p><code>howMany</code> specifies the number of reviewers to choose randomly from the set
+          of candidate reviewers. If omitted, Pullie will request review from <em>all</em> candidate reviewers.</p>
+        <p><code>reviewers</code> specifies a list of candidate reviewers as an array of objects containing an
+          <code>email</code> field, strings in the standard <code>Name &lt;email@domain.com&gt;</code> format, or strings
+          containing raw GitHub usernames.</p>
+        <p><code>commentFormat</code> specifies an optional comment to post when reviews are requested. The token
+          <code>%s</code> will be replaced with a list of @-mentioned usernames for the reviewers being requested.
+          If omitted, no comment will be posted.</p>
+        <p>Candidate reviewers are checked against the GitHub API to ensure that they actually exist as users before
+          their review is requested.
+        </p>
+        <figure class="figure">
+<pre><code>{{#code}}{
+  "plugin": "reviewers",
+  "config": {
+    "howMany": 2,
+    "reviewers": [
+      "jschmoe",
+      "Bob Smith <bsmith@domain.com>",
+      {
+        "name": "John Doe"
+        "email": "jdoe@domain.com"
+      }
+    ],
+    "commentFormat": "I've requested review from %s. Please get approval from them before merging."
+  }
+}{{/code}}</code></pre>
+        <figcaption class="figure-caption">Sample Reviewers plugin config</figcaption>
+        </figure>
+      </section>
+    </main>
+    <footer class="text-muted small container text-right">
+      <p>
+        Pullie version {{VERSION}}
+      </p>
+    </footer>
+  </body>
+</html>

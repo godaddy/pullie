@@ -1,0 +1,11 @@
+{
+  "plugins": [
+    "jira",
+    {
+      "plugin": "reviewers",
+      "config": {
+        "howMany": 2
+      }
+    }
+  ]
+}

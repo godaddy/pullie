@@ -1,0 +1,9 @@
+{
+  "extends": "godaddy",
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "plugins": [
+    "eslint-plugin-json"
+   ]
+}

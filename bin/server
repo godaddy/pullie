@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const argv = require('yargs').argv;
+
+require('../lib').start({ configPath: argv.configPath }, function (err, app) {
+  if (err) {
+    throw err;
+  }
+  app.log.info('App has started on port %j', app.config.get('http'));
+});
+
