@@ -1,0 +1,21 @@
+{
+  "http": 0,
+  "github": {
+    "apiUrl": "https://github.test.fake/api/v3/",
+    "client_id": "some client ID",
+    "client_secret": "some client secret",
+    "appId": "some app ID",
+    "appKeyPath": "test/fixtures/mock-key.pem",
+    "publicUrl": "https://github.test.fake/github-apps/pullie",
+    "secret": "some webhook secret"
+  },
+  "jira": {
+    "protocol": "https",
+    "host": "jira.test.fake",
+    "username": "some user with Jira access",
+    "password": "password for that user",
+    "apiVersion": 2,
+    "strictSSL": true
+  }
+}
+

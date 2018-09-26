@@ -6,10 +6,12 @@
   "scripts": {
     "lint:fix": "eslint -c .eslintrc --fix lib/*.js lib/*/*.js",
     "lint": "eslint -c .eslintrc lib/*.js lib/**/*.js test/**/*.js",
-    "test:unit": "nyc mocha test/unit/*.test.js test/unit/**/*.test.js",
+    "test:unit": "mocha test/unit/*.test.js test/unit/**/*.test.js",
     "test:unit:debug": "mocha --inspect --debug-brk test/unit/*.test.js test/unit/**/*.test.js",
+    "test:integration": "mocha test/integration/*.test.js",
+    "test:integration:debug": "mocha --inspect --debug-brk test/integration/*.test.js",
     "pretest": "npm run lint:fix",
-    "test": "npm run test:unit",
+    "test": "nyc mocha test/unit/*.test.js test/unit/**/*.test.js test/integration/*.test.js",
     "start": "./bin/server",
     "local": "NODE_ENV=local DEBUG='pullie*' ./bin/server",
     "local-debug": "NODE_ENV=local DEBUG='pullie*' node --inspect --debug-brk ./bin/server"
@@ -56,6 +58,7 @@
     "eslint-plugin-json": "^1.2.0",
     "eslint-plugin-mocha": "^4.12.1",
     "mocha": "^5.2.0",
+    "nock": "^10.0.0",
     "nyc": "^12.0.2",
     "proxyquire": "^2.0.1",
     "sinon": "^5.0.10"
