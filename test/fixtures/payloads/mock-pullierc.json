@@ -1,0 +1,22 @@
+{
+  "plugins": [
+    "jira",
+    {
+      "plugin": "reviewers",
+      "config": {
+        "howMany": 2
+      }
+    },
+    {
+      "plugin": "requiredFile",
+      "config": {
+        "files": [
+          {
+            "path": "CHANGELOG.md",
+            "message": "Missing CHANGELOG entry"
+          }
+        ]
+      }
+    }
+  ]
+}
