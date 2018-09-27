@@ -29,7 +29,8 @@
       <nav class="navbar navbar-dark fixed-top navbar-expand-lg bg-dark">
         <div class="container">
           <a href="/" class="navbar-brand">Pullie</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
 
@@ -37,6 +38,13 @@
             <ul class="navbar-nav mr-auto">
               <li class="nav-item active">
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+              </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="https://github.com/godaddy/pullie" target="_blank" rel="noopener noreferrer">
+                  GitHub
+                </a>
               </li>
             </ul>
           </div>
@@ -208,10 +216,15 @@
         </figure>
       </section>
     </main>
-    <footer class="text-muted small container text-right">
-      <p>
-        Pullie version {{VERSION}}
-      </p>
+    <footer class="text-muted small container">
+      <div class="row">
+        <p class="col-sm-6">
+          Made with ❤️ by <a href="https://godaddy.github.io" target="_blank" rel="noopener noreferrer">GoDaddy</a>
+        </p>
+        <p class="col-sm-6 text-right">
+          Pullie version {{VERSION}}
+        </p>
+      </div>
     </footer>
   </body>
 </html>

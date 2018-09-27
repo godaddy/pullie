@@ -14,7 +14,8 @@
     "test": "nyc mocha test/unit/*.test.js test/unit/**/*.test.js test/integration/*.test.js",
     "start": "./bin/server",
     "local": "NODE_ENV=local DEBUG='pullie*' ./bin/server",
-    "local-debug": "NODE_ENV=local DEBUG='pullie*' node --inspect --debug-brk ./bin/server"
+    "local-debug": "NODE_ENV=local DEBUG='pullie*' node --inspect --debug-brk ./bin/server",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   "bin": {
     "pullie": "./bin/server"
@@ -53,6 +54,7 @@
   "devDependencies": {
     "assume": "^2.0.1",
     "assume-sinon": "^1.0.0",
+    "coveralls": "^3.0.2",
     "eslint": "^4.19.1",
     "eslint-config-godaddy": "^2.1.0",
     "eslint-plugin-json": "^1.2.0",
