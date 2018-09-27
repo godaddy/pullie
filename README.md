@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/godaddy/pullie.svg?branch=master)](https://travis-ci.org/godaddy/pullie) [![Coverage Status](https://coveralls.io/repos/github/godaddy/pullie/badge.svg?branch=master)](https://coveralls.io/github/godaddy/pullie?branch=master)
+
+[![NPM](https://nodei.co/npm/pullie.png?downloads=true&stars=true)](https://nodei.co/npm/pullie/)
+
 # pullie
 
 Pullie is a GitHub bot that makes your PRs better. It runs as a GitHub App and receives webhook calls whenever a pull
