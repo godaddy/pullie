@@ -9,10 +9,15 @@ describe('Processor', () => { // eslint-disable-line max-statements
   const sandbox = sinon.createSandbox();
 
   const mockError = new Error('mock error');
-  const mockProcessRequestStub = sandbox.stub().callsArgAsync(2);
-  const mockNoEditsProcessRequestStub = sandbox.stub().callsArgAsync(2);
-  const errorsProcessRequestStub = sandbox.stub().callsArgWithAsync(2, mockError);
-  const flushToStringStub = sandbox.stub().returns('mock comment');
+  const mockProcessRequestStub = sandbox.stub().callsFake((data, config, apis, done) => {
+    apis.commenter.addComment('Mock comment', 0);
+    done();
+  });
+  const mockNoEditsProcessRequestStub = sandbox.stub().callsFake((data, config, apis, done) => {
+    apis.commenter.addComment('Mock comment', 0);
+    done();
+  });
+  const errorsProcessRequestStub = sandbox.stub().callsArgWithAsync(3, mockError);
   const createIssueCommentStub = sandbox.stub().callsArgAsync(3);
   const getFileContentsStub = sandbox.stub().callsArgWithAsync(2, null, 'mockJson');
   const parsePackageJsonStub = sandbox.stub().callsArgAsync(1);
@@ -31,18 +36,15 @@ describe('Processor', () => { // eslint-disable-line max-statements
         processRequest: errorsProcessRequestStub
       }
     },
-    commenter: {
-      flushToString: flushToStringStub
-    },
-    github: {
-      createIssueComment: createIssueCommentStub,
-      getFileContents: getFileContentsStub,
-      parsePackageJson: parsePackageJsonStub
-    },
     log: {
       info: sandbox.stub(),
       error: sandbox.stub()
     }
+  };
+  const mockGithub = {
+    createIssueComment: createIssueCommentStub,
+    getFileContents: getFileContentsStub,
+    parsePackageJson: parsePackageJsonStub
   };
 
   const mockReq = {
@@ -101,7 +103,7 @@ describe('Processor', () => { // eslint-disable-line max-statements
   describe('.processRequest', () => {
     it('is a function', () => {
       assume(processor.processRequest).is.a('function');
-      assume(processor.processRequest).has.length(2);
+      assume(processor.processRequest).has.length(3);
     });
 
     it('bails out on unknown event types', (done) => {
@@ -110,7 +112,7 @@ describe('Processor', () => { // eslint-disable-line max-statements
         headers: {
           'x-github-event': 'unknown'
         }
-      }, (err) => {
+      }, mockGithub, (err) => {
         assume(err).is.falsey();
         assume(getRepoConfigSpy).has.not.been.called();
         getRepoConfigSpy.restore();
@@ -127,7 +129,7 @@ describe('Processor', () => { // eslint-disable-line max-statements
         body: {
           action: 'unknown'
         }
-      }, (err) => {
+      }, mockGithub, (err) => {
         assume(err).is.falsey();
         assume(getRepoConfigSpy).has.not.been.called();
         getRepoConfigSpy.restore();
@@ -136,8 +138,8 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it('bails out when config fetch errors', (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, mockError);
-      processor.processRequest(mockReq, (err) => {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, mockError);
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(err).equals(mockError);
         getRepoConfigStub.restore();
@@ -146,8 +148,8 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it('bails out when no config is found', (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null);
-      processor.processRequest(mockReq, (err) => {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null);
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(err).is.falsey();
         getRepoConfigStub.restore();
@@ -156,8 +158,8 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it('bails out when no plugins are specified', (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {});
-      processor.processRequest(mockReq, (err) => {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {});
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(err).is.falsey();
         getRepoConfigStub.restore();
@@ -166,10 +168,10 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it('bails out when the plugins list is empty', (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {
         plugins: []
       });
-      processor.processRequest(mockReq, (err) => {
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(err).is.falsey();
         getRepoConfigStub.restore();
@@ -178,12 +180,12 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it('bails out when an invalid plugin is specified', (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {
         plugins: [
           'fake'
         ]
       });
-      processor.processRequest(mockReq, (err) => {
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(err).is.truthy();
         assume(err).hasOwn('message', `Invalid config: no plugin named 'fake' exists.`);
@@ -193,16 +195,15 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it(`runs plugins' processRequest methods`, (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {
         plugins: [
           'mock'
         ]
       });
-      processor.processRequest(mockReq, (err) => {
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(mockProcessRequestStub).has.been.calledWith(mockReq.body, {});
         assume(err).is.falsey();
-        assume(flushToStringStub).has.been.called();
         assume(createIssueCommentStub).has.been.called();
         getRepoConfigStub.restore();
         done();
@@ -210,7 +211,7 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it(`runs plugins' processRequest methods with config`, (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {
         plugins: [
           {
             plugin: 'mock',
@@ -220,13 +221,12 @@ describe('Processor', () => { // eslint-disable-line max-statements
           }
         ]
       });
-      processor.processRequest(mockReq, (err) => {
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(mockProcessRequestStub).has.been.calledWith(mockReq.body, {
           foo: 'bar'
         });
         assume(err).is.falsey();
-        assume(flushToStringStub).has.been.called();
         assume(createIssueCommentStub).has.been.called();
         getRepoConfigStub.restore();
         done();
@@ -234,34 +234,32 @@ describe('Processor', () => { // eslint-disable-line max-statements
     });
 
     it(`skips plugins' processRequest methods on edit actions when the plugin doesn't handle edits`, (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {
         plugins: [
           'mockNoEdits'
         ]
       });
-      processor.processRequest(mockEditReq, (err) => {
+      processor.processRequest(mockEditReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(mockNoEditsProcessRequestStub).has.not.been.called();
         assume(err).is.falsey();
-        assume(flushToStringStub).has.been.called();
-        assume(createIssueCommentStub).has.been.called();
+        assume(createIssueCommentStub).has.not.been.called();
         getRepoConfigStub.restore();
         done();
       });
     });
 
     it(`handles errors from plugins' processRequest methods`, (done) => {
-      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(1, null, {
+      const getRepoConfigStub = sandbox.stub(processor, 'getRepoConfig').callsArgWithAsync(2, null, {
         plugins: [
           'errors'
         ]
       });
-      processor.processRequest(mockReq, (err) => {
+      processor.processRequest(mockReq, mockGithub, (err) => {
         assume(getRepoConfigStub).has.been.called();
         assume(errorsProcessRequestStub).has.been.calledWith(mockReq.body, {});
         assume(err).is.truthy();
         assume(err).equals(mockError);
-        assume(flushToStringStub).has.not.been.called();
         assume(createIssueCommentStub).has.not.been.called();
         getRepoConfigStub.restore();
         done();
@@ -272,12 +270,12 @@ describe('Processor', () => { // eslint-disable-line max-statements
   describe('.getRepoConfig', () => {
     it('is a function', () => {
       assume(processor.getRepoConfig).is.a('function');
-      assume(processor.getRepoConfig).has.length(2);
+      assume(processor.getRepoConfig).has.length(3);
     });
 
     it('errrors on error retrieving config file', (done) => {
       getFileContentsStub.callsArgWithAsync(2, mockError);
-      processor.getRepoConfig(mockReq.body.repository, (err) => {
+      processor.getRepoConfig(mockReq.body.repository, mockGithub, (err) => {
         assume(getFileContentsStub).has.been.called();
         assume(err).is.truthy();
         assume(err).equals(mockError);
@@ -289,7 +287,7 @@ describe('Processor', () => { // eslint-disable-line max-statements
       getFileContentsStub.callsArgWithAsync(2, {
         statusCode: 404
       });
-      processor.getRepoConfig(mockReq.body.repository, (err) => {
+      processor.getRepoConfig(mockReq.body.repository, mockGithub, (err) => {
         assume(getFileContentsStub).has.been.called();
         assume(err).is.falsey();
         done();
@@ -298,7 +296,7 @@ describe('Processor', () => { // eslint-disable-line max-statements
 
     it('handles a valid config file', (done) => {
       getFileContentsStub.callsArgWithAsync(2, null, 'mockJson');
-      processor.getRepoConfig(mockReq.body.repository, (err) => {
+      processor.getRepoConfig(mockReq.body.repository, mockGithub, (err) => {
         assume(getFileContentsStub).has.been.called();
         assume(err).is.falsey();
         assume(parsePackageJsonStub).has.been.calledWith('mockJson');

@@ -14,7 +14,9 @@ const mockApp = {
       username: 'username',
       password: 'password'
     })
-  },
+  }
+};
+const mockApis = {
   commenter: {
     addComment: addCommentStub
   }
@@ -42,7 +44,7 @@ describe('JiraPlugin', () => {
 
     it('is a function', () => {
       assume(jiraPlugin.processRequest).is.a('function');
-      assume(jiraPlugin.processRequest).has.length(3);
+      assume(jiraPlugin.processRequest).has.length(4);
     });
 
     it(`bails out if the PR action is an edit and the title hasn't changed`, (done) => {
@@ -56,7 +58,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: 'title'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.not.been.called();
         done();
@@ -74,7 +76,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: 'title'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.not.been.called();
         done();
@@ -87,7 +89,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: 'title with no Jira tickets'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.not.been.called();
         done();
@@ -102,7 +104,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: '[AB-1234] title with 1 Jira ticket'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.truthy();
         assume(err).equals(mockError);
         assume(requestPostStub).has.been.called();
@@ -117,7 +119,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: '[AB-1234] title with 1 Jira ticket'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: unknown');
         assume(requestPostStub).has.been.called();
@@ -134,7 +136,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: '[AB-1234] title with 1 Jira ticket'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: 404');
         assume(requestPostStub).has.been.called();
@@ -160,7 +162,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: '[AB-1234] title with 1 Jira ticket'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.been.calledWithMatch(
           sinon.match.string,
@@ -196,7 +198,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: '[AB-1234] title with 2 Jira tickets [FOO-5678]'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.been.calledWithMatch(
           sinon.match.string,
@@ -233,7 +235,7 @@ describe('JiraPlugin', () => {
         pull_request: {
           title: 'AB-1234 title with 2 Jira tickets FOO-5678'
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.been.calledWithMatch(
           sinon.match.string,
@@ -257,7 +259,7 @@ describe('JiraPlugin', () => {
             from: '[AB-1234] title that has changed with 2 Jira tickets [FOO-5678]'
           }
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(addCommentStub).has.not.been.called();
         done();
@@ -293,7 +295,7 @@ describe('JiraPlugin', () => {
             from: '[AB-3456] title with 2 Jira tickets [FOO-7980]'
           }
         }
-      }, null, (err) => {
+      }, null, mockApis, (err) => {
         assume(err).is.falsey();
         assume(requestPostStub).has.been.calledWithMatch(
           sinon.match.string,
