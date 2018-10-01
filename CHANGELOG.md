@@ -1,7 +1,6 @@
 # CHANGELOG
 
-- Add integration tests
-- Add GitHub links to documentation page
+- [fix] Set `"main"` field of `package.json` properly
 
 ## 1.0.0
 

@@ -2,7 +2,7 @@
   "name": "pullie",
   "version": "1.0.0",
   "description": "A github bot that makes your PRs better",
-  "main": "server.js",
+  "main": "./lib/index.js",
   "scripts": {
     "lint:fix": "eslint -c .eslintrc --fix lib/*.js lib/*/*.js",
     "lint": "eslint -c .eslintrc lib/*.js lib/**/*.js test/**/*.js",
