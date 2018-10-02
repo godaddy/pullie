@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 1.1.0
+
 - [feat] Add logging for request info (e.g. HTTP status, path, remote IP)
 
 ## 1.0.1
