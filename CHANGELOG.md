@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 1.1.1
+
 - [fix] Include PR number in error logs
 
 ## 1.1.0
