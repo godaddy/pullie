@@ -16,6 +16,7 @@ function nockFile(scope, path, contents) {
 describe('Pullie (integration)', function () {
   let pullie;
   let baseUrl;
+  const requestsProcessed = [];
 
   before(function (done) {
     const github = nock('https://github.test.fake')
@@ -64,6 +65,12 @@ describe('Pullie (integration)', function () {
       baseUrl = base;
       pullie = server;
 
+      // Subscribe to `process` interceptor to test it
+      pullie.before('process', (data, next) => {
+        requestsProcessed.push(data);
+        next();
+      });
+
       done();
     });
   });
@@ -79,6 +86,7 @@ describe('Pullie (integration)', function () {
       assume(res).hasOwn('statusCode', 200);
       assume(body).hasOwn('status', 'ok');
       assume(nock.isDone()).is.true();
+      assume(requestsProcessed.find(req => req.repository === 'org/repo' && req.number === 165)).is.truthy();
 
       done();
     });

@@ -39,6 +39,11 @@ describe('Processor', () => { // eslint-disable-line max-statements
     log: {
       info: sandbox.stub(),
       error: sandbox.stub()
+    },
+    perform: function () {
+      const workFn = arguments[arguments.length - 2];
+      const callback = arguments[arguments.length - 1];
+      workFn(callback);
     }
   };
   const mockGithub = {
