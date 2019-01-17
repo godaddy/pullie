@@ -50,7 +50,8 @@
     "slay-config": "^2.2.0",
     "slay-error": "^1.0.0",
     "slay-log": "^2.3.0",
-    "verify-github-webhook": "^1.0.1"
+    "verify-github-webhook": "^1.0.1",
+    "yargs": "^12.0.5"
   },
   "devDependencies": {
     "assume": "^2.0.1",
@@ -64,8 +65,7 @@
     "nock": "^10.0.6",
     "nyc": "^13.1.0",
     "proxyquire": "^2.0.1",
-    "sinon": "^7.2.2",
-    "yargs": "^12.0.5"
+    "sinon": "^7.2.2"
   },
   "author": "GoDaddy.com Operating Company, LLC",
   "license": "MIT"
