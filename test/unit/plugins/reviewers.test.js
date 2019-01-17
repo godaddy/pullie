@@ -310,7 +310,7 @@ describe('ReviewersPlugin', () => {
         pull_request: {}
       }, candidateReviewers, null, 'Some comment %s', mockApis, () => {
         assume(getUsersFromReviewersListStub).has.been.called();
-        assume(addCommentStub).has.been.calledWithMatch('@one, @three, @two', Commenter.priority.High);
+        assume(addCommentStub).has.been.calledWithMatch('@one, @three, @two', Commenter.priority.Medium);
         getUsersFromReviewersListStub.restore();
         done();
       });
