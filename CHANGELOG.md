@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.3.0
+
+- [feat] Adjust `reviewers` plugin to post a medium-priority comment instead of high-priority
+- [feat] Adjust `requiredFile` plugin to prefix the comment message with a ⚠️ emoji so that attention is drawn to it better
+- [dist] Update dependencies to latest
+
 ## 1.2.0
 
 - [feat] Add `process` interceptor
