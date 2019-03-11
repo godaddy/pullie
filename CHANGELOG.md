@@ -1,5 +1,9 @@
 # CHANGELOG
 
+- [dist] Update dependencies
+- [fix] Do not log HTTP calls for healthcheck route
+- [fix] Output port number that service is running on
+
 ## 1.3.0
 
 - [feat] Adjust `reviewers` plugin to post a medium-priority comment instead of high-priority
