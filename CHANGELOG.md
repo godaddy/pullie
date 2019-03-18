@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 1.3.1
+
 - [dist] Update dependencies
 - [fix] Do not log HTTP calls for healthcheck route
 - [fix] Output port number that service is running on
