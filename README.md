@@ -20,7 +20,7 @@ deployment.
 ## Configuration
 
 You must specify configuration values via environment variables. You may do so using a `.env` file. See
-[`.env.example`](./.env) for a sample configuration with full documentation.
+[`.env.example`](./.env.example) for a sample configuration with full documentation.
 
 ### Setting up your GitHub App
 
