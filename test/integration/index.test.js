@@ -1,32 +1,45 @@
 const assume = require('assume');
+const fs = require('fs');
 const nock = require('nock');
-const { startPullie, sendWebhookEvent, assumeValidResponse } = require('./helpers');
-const openPRPayload = require('../fixtures/payloads/open-pr');
-const mockPullieRC = require('../fixtures/payloads/mock-pullierc');
-const mockPackageJson = require('../fixtures/payloads/mock-packagejson');
+const path = require('path');
+const request = require('request');
+const pullieApp = require('../../');
+const { Probot } = require('probot');
+const { assumeValidResponse } = require('./helpers');
+const openPRPayload = require('../fixtures/payloads/open-pr.json');
+const mockPullieRC = require('../fixtures/payloads/mock-pullierc.json');
+const mockPackageJson = require('../fixtures/payloads/mock-packagejson.json');
 
-function nockFile(scope, path, contents) {
-  scope.get('/api/v3/repos/org/repo/contents/' + path)
+function nockFile(scope, urlPath, contents) {
+  scope.get('/api/v3/repos/org/repo/contents/' + urlPath)
     .reply(200, {
       content: Buffer.from(contents).toString('base64'),
-      path
+      path: urlPath
     });
 }
 
 describe('Pullie (integration)', function () {
+  /** @type {Probot} */
   let pullie;
-  let baseUrl;
-  const requestsProcessed = [];
+  let mockCert;
 
   before(function (done) {
+    fs.readFile(path.join(__dirname, '../fixtures/mock-key.pem'), (err, cert) => {
+      if (err) return done(err);
+      mockCert = cert;
+      done();
+    });
+  });
+
+  before(function () {
     const github = nock('https://github.test.fake')
-      .post('/api/v3/installations/1/access_tokens')
+      .post('/api/v3/app/installations/1/access_tokens')
       .reply(201, {
         token: 'mock_token',
         expires_at: '9999-12-31T00:00:00Z'
       })
-      .get('/api/v3/users/jsmith')
-      .reply(200)
+      .get('/api/v3/repos/org/repo/collaborators/jsmith')
+      .reply(204)
       .get('/api/v3/repos/org/repo/pulls/165/files')
       .reply(200, [
         {
@@ -60,51 +73,93 @@ describe('Pullie (integration)', function () {
           }
         ]
       });
-
-    startPullie((base, server) => {
-      baseUrl = base;
-      pullie = server;
-
-      // Subscribe to `process` interceptor to test it
-      pullie.before('process', (data, next) => {
-        requestsProcessed.push(data);
-        next();
-      });
-
-      done();
-    });
   });
 
-  after(function (done) {
+  before(function () {
+    process.env.GHE_HOST = 'github.test.fake';
+    process.env.JIRA_PROTOCOL = 'https';
+    process.env.JIRA_HOST = 'jira.test.fake';
+    process.env.JIRA_USERNAME = 'test_user';
+    process.env.JIRA_PASSWORD = 'test_password';
+    pullie = new Probot({ id: 123, cert: mockCert });
+    pullie.load(pullieApp);
+  });
+
+  after(function () {
     nock.restore();
-    pullie.close(done);
   });
 
-  it('properly processes a pull request', function (done) {
-    sendWebhookEvent(baseUrl, openPRPayload, 'sha1=0f38976f0589823100363caa9261a6cf5450e576', (err, res, body) => {
-      assume(err).is.falsey();
-      assume(res).hasOwn('statusCode', 200);
-      assume(body).hasOwn('status', 'ok');
-      assume(nock.isDone()).is.true();
-      assume(requestsProcessed.find(req => req.repository === 'org/repo' && req.number === 165)).is.truthy();
+  describe('API', function () {
+    before(function () {
+      nock.disableNetConnect();
+    });
 
-      done();
+    after(function () {
+      nock.enableNetConnect();
+    });
+
+    it('properly processes a pull request', async function () {
+      this.timeout(5000);
+      await pullie.receive({
+        name: 'pull_request',
+        payload: openPRPayload
+      });
+      assume(nock.isDone()).is.true();
     });
   });
 
-  it('serves documentation at host root', function (done) {
-    assumeValidResponse(baseUrl, '<!DOCTYPE html>', done);
+  describe('Docs', function () {
+    let baseUrl;
+    before(function () {
+      pullie.start();
+      const { port } = pullie.httpServer.address();
+      baseUrl = `http://localhost:${port}/docs`;
+    });
+
+    after(function (done) {
+      pullie.httpServer.close(done);
+    });
+
+    it('serves documentation at host root', function (done) {
+      assumeValidResponse(baseUrl, '<!DOCTYPE html>', done);
+    });
+
+    it('serves Prism CSS properly', function (done) {
+      assumeValidResponse(baseUrl + '/prism-coy.css', 'prism', done);
+    });
+
+    it('serves healthcheck properly', function (done) {
+      assumeValidResponse(baseUrl + '/healthcheck.html', 'page ok', done);
+    });
+
+    it('serves static files properly', function (done) {
+      assumeValidResponse(baseUrl + '/static/pullie.svg', 'svg', done);
+    });
   });
 
-  it('serves Prism CSS properly', function (done) {
-    assumeValidResponse(baseUrl + '/prism-coy.css', 'prism', done);
-  });
+  describe('No Docs', function () {
+    let baseUrl;
 
-  it('serves healthcheck properly', function (done) {
-    assumeValidResponse(baseUrl + '/healthcheck.html', 'page ok', done);
-  });
+    before(function () {
+      process.env.DISABLE_DOCS_ROUTE = 'true';
+      pullie = new Probot({ id: 123, cert: mockCert });
+      pullie.load(pullieApp);
+      pullie.start();
+      const { port } = pullie.httpServer.address();
+      baseUrl = `http://localhost:${port}/docs`;
+    });
 
-  it('serves static files properly', function (done) {
-    assumeValidResponse(baseUrl + '/static/pullie.svg', 'svg', done);
+    after(function (done) {
+      pullie.httpServer.close(done);
+    });
+
+    it('does not initialize the docs route when DISABLE_DOCS_ROUTE is set', function (done) {
+      request(baseUrl, (err, res) => {
+        assume(err).is.falsey();
+        assume(res).hasOwn('statusCode', 404);
+
+        done();
+      });
+    });
   });
 });

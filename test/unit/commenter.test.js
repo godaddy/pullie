@@ -1,18 +1,18 @@
 const assume = require('assume');
 
-const Commenter = require('../../lib/commenter');
+const Commenter = require('../../commenter');
 
-describe('Commenter', () => {
+describe('Commenter', function () {
   const commenter = new Commenter();
 
-  it('is a constructor', () => {
+  it('is a constructor', function () {
     assume(Commenter).is.a('function');
     assume(Commenter).has.length(0);
     assume(commenter).is.instanceOf(Commenter);
   });
 
-  describe('.priority', () => {
-    it('is an enum', () => {
+  describe('.priority', function () {
+    it('is an enum', function () {
       assume(Commenter).hasOwn('priority');
       assume(Commenter.priority).has.length(3);
       assume(Commenter.priority).contains('Low');
@@ -23,18 +23,19 @@ describe('Commenter', () => {
     });
   });
 
-  describe('.addComment', () => {
-    it('throws on empty message', () => {
+  describe('.addComment', function () {
+    it('throws on empty message', function () {
       assume(() => commenter.addComment(null, Commenter.priority.Low)).throws();
     });
 
-    it('throws on invalid priority', () => {
+    it('throws on invalid priority', function () {
+      // @ts-ignore
       assume(() => commenter.addComment('comment', 'Low')).throws();
       assume(() => commenter.addComment('comment', -1)).throws();
       assume(() => commenter.addComment('comment', 3)).throws();
     });
 
-    it('Enqueues a comment properly', () => {
+    it('Enqueues a comment properly', function () {
       assume(commenter.comments).has.length(0);
       commenter.addComment('comment', Commenter.priority.Low);
       assume(commenter.comments).has.length(1);
@@ -44,20 +45,20 @@ describe('Commenter', () => {
     });
   });
 
-  describe('.flushToString', () => {
-    it('bails when there are no queued comments', () => {
+  describe('.flushToString', function () {
+    it('bails when there are no queued comments', function () {
       assume(commenter.comments).has.length(0);
       assume(commenter.flushToString()).equals(null);
     });
 
-    it('outputs a properly formatted comment', () => {
+    it('outputs a properly formatted comment', function () {
       commenter.addComment('comment', Commenter.priority.Low);
       assume(commenter.comments).has.length(1);
       assume(commenter.flushToString()).equals('comment');
       assume(commenter.comments).has.length(0);
     });
 
-    it('outputs a sorted list of comments', () => {
+    it('outputs a sorted list of comments', function () {
       commenter.addComment('comment-low', Commenter.priority.Low);
       commenter.addComment('comment-high', Commenter.priority.High);
       commenter.addComment('comment-medium1', Commenter.priority.Medium);

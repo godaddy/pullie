@@ -1,19 +1,16 @@
-const request = require('request');
+const request = require('request-promise-native');
 const Commenter = require('../../commenter');
 
 const HAS_JIRA_TICKET = /([A-Z]+-[1-9][0-9]*)/g;
 
 class JiraPlugin {
-  /**
-   * JIRA plugin - uses PR title to link related JIRA ticket(s)
-   *
-   * @constructor
-   * @public
-   * @param {Slay.App} app Slay app
-   */
-  constructor(app) {
-    this.app = app;
-    this.jiraConfig = app.config.get('jira');
+  constructor() {
+    this.jiraConfig = {
+      protocol: process.env.JIRA_PROTOCOL,
+      host: process.env.JIRA_HOST,
+      username: process.env.JIRA_USERNAME,
+      password: process.env.JIRA_PASSWORD
+    };
   }
 
   /**
@@ -26,19 +23,20 @@ class JiraPlugin {
   }
 
   /**
+   * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
+   * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
+   * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
+   */
+  /**
    * Process a PR webhook and perform needed JIRA actions
    *
    * @memberof JiraPlugin
    * @public
-   * @param {Object} data PR webhook data
-   * @param {Object} config Configuration for plugin
-   * @param {Object} apis A set of APIs needed to process the request
-   * @param {Commenter} apis.commenter Commenter object for aggregating comments to post
-   * @param {GitHubClient} apis.github A GitHubClient instance for this request
-   * @param {Function} done Continuation callback
-   * @returns {Undefined} Nothing of significance
+   * @param {ProbotContext} context webhook context
+   * @param {Commenter} commenter Commenter
    */
-  processRequest(data, config, apis, done) { // eslint-disable-line max-statements
+  async processRequest(context, commenter) { // eslint-disable-line max-statements
+    const data = context.payload;
     const isEdit = data.action === 'edited';
     let oldTitle = null;
 
@@ -46,7 +44,7 @@ class JiraPlugin {
       oldTitle = data.changes && data.changes.title && data.changes.title.from;
       if (!oldTitle || oldTitle === data.pull_request.title) {
         // Title hasn't changed, nothing to do
-        return void done();
+        return;
       }
     }
 
@@ -55,7 +53,7 @@ class JiraPlugin {
 
     if (ticketIds.length === 0) {
       // No tickets referenced in title, nothing to do
-      return void done();
+      return;
     }
 
     if (isEdit && oldTitle) {
@@ -65,10 +63,10 @@ class JiraPlugin {
 
     if (ticketIds.length === 0) {
       // No tickets referenced in title, nothing to do
-      return void done();
+      return;
     }
 
-    this.findTicketsAndPost(ticketIds, apis.commenter, done);
+    return this.findTicketsAndPost(commenter, ticketIds);
   }
 
   /**
@@ -76,15 +74,15 @@ class JiraPlugin {
    *
    * @memberof JiraPlugin
    * @private
+   * @param {Commenter} commenter Commenter
    * @param {String[]} ticketIds A list of ticket IDs
-   * @param {Commenter} commenter Commenter object for aggregating comments to post
-   * @param {Function} done Continuation callback
    */
-  findTicketsAndPost(ticketIds, commenter, done) {
+  async findTicketsAndPost(commenter, ticketIds) {
     const jql = `id in ('${ticketIds.join("', '")}')`;
 
-    request.post(`${this.jiraConfig.protocol}://${this.jiraConfig.host}/rest/api/2/search`, {
+    const res = await request.post(`${this.jiraConfig.protocol}://${this.jiraConfig.host}/rest/api/2/search`, {
       json: true,
+      resolveWithFullResponse: true,
       headers: {
         Accept: 'application/json'
       },
@@ -97,22 +95,21 @@ class JiraPlugin {
         startAt: 0,
         fields: ['summary']
       }
-    }, (err, res, body) => {
-      if (err) return void done(err);
-      if (!res || res.statusCode < 200 || res.statusCode > 299) return void done(
-        new Error(`Error retrieving Jira ticket info. Status code: ${(res && res.statusCode) || 'unknown'} from Jira.`));
-
-      const ticketList = body.issues.reduce((acc, ticket) => {
-        return acc +
-          // eslint-disable-next-line max-len
-          `\n- [\\[${ticket.key}\\] ${ticket.fields.summary}](${this.jiraConfig.protocol}://${this.jiraConfig.host}/browse/${ticket.key})`;
-      }, '');
-
-      // call some API to post the comment on the PR
-      const comment = `I found the following Jira ticket(s) referenced in this PR:\n${ticketList}`;
-      commenter.addComment(comment, Commenter.priority.Low);
-      done();
     });
+
+    if (!res || res.statusCode < 200 || res.statusCode > 299)
+      throw new Error(
+        `Error retrieving Jira ticket info. Status code: ${(res && res.statusCode) || 'unknown'} from Jira.`);
+
+    const ticketList = res.body.issues.reduce((acc, ticket) => {
+      return acc +
+        // eslint-disable-next-line max-len
+        `\n- [\\[${ticket.key}\\] ${ticket.fields.summary}](${this.jiraConfig.protocol}://${this.jiraConfig.host}/browse/${ticket.key})`;
+    }, '');
+
+    // call some API to post the comment on the PR
+    const comment = `I found the following Jira ticket(s) referenced in this PR:\n${ticketList}`;
+    commenter.addComment(comment, Commenter.priority.Low);
   }
 
   /**
@@ -135,6 +132,4 @@ class JiraPlugin {
   }
 }
 
-module.exports = function JiraPluginFactory(app) {
-  return new JiraPlugin(app);
-};
+module.exports = JiraPlugin;

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.0
+
+- **BREAKING:** Rewrite on [Probot](https://probot.github.io)
+
 ## 1.3.1
 
 - [dist] Update dependencies

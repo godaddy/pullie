@@ -1,10 +1,10 @@
 const assume = require('assume');
 const sinon = require('sinon');
 
-const Plugins = require('../../lib/plugins');
+const Plugins = require('../../plugins');
 
-describe('Plugins', () => {
-  it('Exposes all plugins as an object', () => {
+describe('Plugins', function () {
+  it('Exposes all plugins as an object', function () {
     assume(Plugins).is.a('function');
     const plugins = new Plugins({
       config: {

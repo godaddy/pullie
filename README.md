@@ -14,43 +14,13 @@ Pullie runs on public GitHub or on GitHub Enterprise 2.14 or later.
 
 ## How to run/deploy
 
-The easiest way to deploy Pullie is to wrap this npm module in another package which includes the configuration files
-and deployment logic.
-
-A sample wrapper package is included in the `sample-deployment-wrapper/` folder. It uses Docker and Kubernetes, though
-neither of those are hard requirements to run Pullie.
-
-At a high level, the requirements are:
-
-- Have [a configuration file](#configuration)
-- Run the `pullie` bin script with `--configFile=<path to your config file>`
+The easiest way to run Pullie is to clone this repo and run `npm start`. You can do so in a Docker container for easy
+deployment.
 
 ## Configuration
 
-Your config file must be in JSON format and contain the following:
-
-```js
-{
-  "http": 3000, // port to run on
-  "github": {
-    "apiUrl": "https://github.example.com/api/v3/", // base URL of your GitHub instance
-    "client_id": "your app's client ID", // see section below
-    "client_secret": "your app's client secret", // see section below
-    "appId": "your app's ID", // see section below
-    "appKeyPath": "/etc/pullie/pullie.private.pem", // path to your app's private key -- see section below
-    "publicUrl": "https://github.example.com/github-apps/pullie", // URL to your app's public page
-    "secret": "your app's webhook secret", // see section below
-  },
-  "jira": { // This section is optional -- only needed if you want to integrate with Jira
-    "protocol": "https", // Protocol for Jira API
-    "host": "jira.example.com", // Hostname for Jira API
-    "username": "username of account with Jira access",
-    "password": "password of account with Jira access",
-    "apiVersion": 2, // API version to use when communicating with Jira
-    "strictSSL": true // Whether to require strict SSL when communicating with Jira
-  }
-}
-```
+You must specify configuration values via environment variables. You may do so using a `.env` file. See
+[`.env.example`](./.env) for a sample configuration with full documentation.
 
 ### Setting up your GitHub App
 
@@ -71,7 +41,8 @@ GitHub App there first. Here's how:
 - **Homepage URL:** The base URL of your Pullie deployment (e.g. https://pullie.example.com)
 - **User authorization callback URL:** Same URL as above
 - **Setup URL (optional):** Not needed -- leave this blank
-- **Webhook URL:** `/api/v1/github` appended to your deployment's base URL (e.g. https://pullie.example.com/api/v1/github)
+- **Webhook URL:** Your deployment's base URL (e.g. https://pullie.example.com/) (unless `WEBHOOK_PATH` is adjusted in
+  config)
 - **Webhook secret (optional):** Choose a random string as your webhook secret (e.g. a random UUID perhaps)
 
 - **Permissions:** Leave all as **No access** _except_ the following:
@@ -95,15 +66,16 @@ GitHub App there first. Here's how:
   - Copy the **Client secret** and use as your app's client secret in the config file
   - Click the **Generate private key** button to create your app's private key file. Copy the file it downloads to your
     Pullie deployment in a secure place (e.g. by using Kubernetes Secrets)
-9. Upload a logo for Pullie. You can use one of the PNG files in the `dist` folder of the Pullie npm package if you'd like.
+9. Upload a logo for Pullie. You can use one of the PNG files in the `static` folder of the Pullie npm package if you'd
+  like.
 
 ### Install your GitHub App on an org/user
 
-Now, you can install your GitHub App on an org or user. Select **Install App** on the left side of the App's config page
-and then press the green **Install** button on any org(s) and/or user(s) you'd like Pullie to run on. Pullie will not
-do anything unless a repo has a `.pullierc` file, so it is safe to install across an org.
+Now, you can install your GitHub App on an org or user. Select **Install App** on the left side of the App's config 
+page and then press the green **Install** button on any org(s) and/or user(s) you'd like Pullie to run on. Pullie will
+not do anything unless a repo has a `.pullierc` file, so it is safe to install across an org.
 
 ## User documentation
 
-User docs are available at the base URL of your Pullie deployment (e.g https://pullie.example.com). Just browse there
-and you'll see full documentation on installing the App and configuring a repo to work with it.
+User docs are available at the docs URL of your Pullie deployment (e.g https://pullie.example.com/docs). Just browse
+there and you'll see full documentation on installing the App and configuring a repo to work with it.

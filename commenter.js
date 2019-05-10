@@ -4,7 +4,6 @@ class Commenter {
    *
    * @constructor
    * @public
-   * @param {Slay.App} app Slay app
    */
   constructor() {
     this.comments = [];

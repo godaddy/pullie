@@ -1,9 +1,15 @@
 {
   "extends": "godaddy",
+  "env": {
+    "node": true
+  },
   "parserOptions": {
-    "ecmaVersion": 6
+    "ecmaVersion": 9
   },
   "plugins": [
     "eslint-plugin-json"
-   ]
+  ],
+  "rules": {
+    "no-process-env": 0
+  }
 }
