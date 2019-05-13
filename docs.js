@@ -5,9 +5,6 @@ const path = require('path');
 const Prism = require('prismjs');
 require('prismjs/components/')(['json']);
 const resolveCwd = require('resolve-cwd');
-const { promisify } = require('util');
-
-const readFile = promisify(fs.readFile);
 
 /**
  * @typedef {import('express').Router} expressRouter
@@ -17,8 +14,9 @@ const readFile = promisify(fs.readFile);
  *
  * @param {expressRouter} router Express router to attach routes to
  */
-module.exports = async function setupDocsRoutes(router) {
-  const docsSource = await readFile(path.join(__dirname, 'views/home.hbs'), { encoding: 'utf8' });
+module.exports = function setupDocsRoutes(router) {
+  // eslint-disable-next-line no-sync
+  const docsSource = fs.readFileSync(path.join(__dirname, 'views/home.hbs'), { encoding: 'utf8' });
   handlebars.registerHelper('code', options => new handlebars.SafeString(
     Prism.highlight(options.fn(), Prism.languages.json, 'json')));
   const docsTemplate = handlebars.compile(docsSource);
