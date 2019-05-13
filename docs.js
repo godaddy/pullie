@@ -9,6 +9,14 @@ const { promisify } = require('util');
 
 const readFile = promisify(fs.readFile);
 
+/**
+ * @typedef {import('express').Router} expressRouter
+ */
+/**
+ * Setup doc site routes
+ *
+ * @param {expressRouter} router Express router to attach routes to
+ */
 module.exports = async function setupDocsRoutes(router) {
   const docsSource = await readFile(path.join(__dirname, 'views/home.hbs'), { encoding: 'utf8' });
   handlebars.registerHelper('code', options => new handlebars.SafeString(
@@ -19,7 +27,7 @@ module.exports = async function setupDocsRoutes(router) {
     VERSION: packageJson.version
   });
 
-  router.use('/static', require('express').static('static'));
+  router.use('/static', require('express').static(path.join(__dirname, 'static')));
   router.get('/', (req, res) => {
     res.send(docsHtml);
   });
