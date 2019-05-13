@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.0-rc2
+
+- [fix] Make `setupDocsRoutes` synchronous
+
 ## 2.0.0-rc1
 
 - [fix] Fix static path in docs routes
