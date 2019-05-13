@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 2.0.0
+## 2.0.0-rc1
+
+- [fix] Fix static path in docs routes
+
+## 2.0.0-rc0
 
 - **BREAKING:** Rewrite on [Probot](https://probot.github.io)
 
