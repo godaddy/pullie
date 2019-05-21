@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.0-rc3
+
+- [fix] Make resource paths relative in docs page
+
 ## 2.0.0-rc2
 
 - [fix] Make `setupDocsRoutes` synchronous
