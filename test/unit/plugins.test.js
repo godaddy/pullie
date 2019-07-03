@@ -15,5 +15,6 @@ describe('Plugins', function () {
     assume(plugins).contains('jira');
     assume(plugins).contains('requiredFile');
     assume(plugins).contains('reviewers');
+    assume(plugins).contains('wip');
   });
 });

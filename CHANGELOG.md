@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- [feat] Add `wip` plugin to adjust PR draft status based on `WIP` in title
+
 ## 2.0.0-rc3
 
 - [fix] Make resource paths relative in docs page

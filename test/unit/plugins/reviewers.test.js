@@ -46,13 +46,13 @@ describe('ReviewersPlugin', function () {
       return {
         ...this.repo(),
         number: 1234
-      }
+      };
     },
     repo() {
       return {
         owner: 'org',
-        repo: 'repo',
-      }
+        repo: 'repo'
+      };
     },
     payload: {
       repository: {
@@ -91,7 +91,7 @@ describe('ReviewersPlugin', function () {
     });
 
     it('bails out if no package.json is found', async function () {
-      const getPackageJsonStub = sandbox.stub(reviewersPlugin, 'getPackageJson').resolves()
+      const getPackageJsonStub = sandbox.stub(reviewersPlugin, 'getPackageJson').resolves();
       // eslint-disable-next-line id-length
       const getAllPossibleReviewersSpy = sandbox.spy(reviewersPlugin, 'getAllPossibleReviewers');
       try {

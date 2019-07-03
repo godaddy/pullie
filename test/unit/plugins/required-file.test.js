@@ -90,7 +90,7 @@ describe('RequiredFilePlugin', () => {
         return {
           owner: 'org',
           repo: 'repo'
-        }
+        };
       },
       payload: {
         repository: {

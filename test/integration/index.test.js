@@ -48,6 +48,8 @@ describe('Pullie (integration)', function () {
       ])
       .post('/api/v3/repos/org/repo/pulls/165/requested_reviewers')
       .reply(200)
+      .patch('/api/v3/repos/org/repo/pulls/165')
+      .reply(204)
       .post('/api/v3/repos/org/repo/issues/165/comments')
       .reply(200);
 
