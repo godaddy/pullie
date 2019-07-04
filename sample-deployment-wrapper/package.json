@@ -4,7 +4,9 @@
   "description": "Sample deployable wrapper for Pullie",
   "main": "index.js",
   "scripts": {
-    "start": "pullie --configPath=config/production.json"
+    "start": "pullie --configPath=config/production.json",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -14,6 +16,8 @@
     "pullie"
   ],
   "dependencies": {
-    "pullie": "^1.0.0"
-  }
+    "pullie": "^1.0.0",
+    "snyk": "^1.189.0"
+  },
+  "snyk": true
 }
