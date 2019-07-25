@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.3
+
+- [dist] Update dependencies
+
 ## 1.3.2
 
 - [dist] Update dependencies
