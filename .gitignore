@@ -38,3 +38,5 @@ node_modules
 # User specific stuff
 .idea/
 .DS_Store
+
+.env
