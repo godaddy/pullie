@@ -104,7 +104,7 @@ describe('Processor', () => {
   });
 
   it('bails when no config is present', async function () {
-    getContentsStub.resolves({
+    getContentsStub.rejects({
       status: 404
     });
     await processPR(mockContext);
