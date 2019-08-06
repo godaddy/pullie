@@ -84,10 +84,17 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
  * @returns {Promise<Object>} Config for the repo
  */
 async function getRepoConfig(context) {
-  const pullieRcRes = await context.github.repos.getContents({
-    ...context.repo(),
-    path: '.pullierc'
-  });
-  if (pullieRcRes.status === 404) return;
+  let pullieRcRes = {};
+  try {
+    pullieRcRes = await context.github.repos.getContents({
+      ...context.repo(),
+      path: '.pullierc'
+    });
+  } catch (err) {
+    // If there's no .pullierc, just skip this request. Otherwise, re-throw the error.
+    if (err.status === 404) return;
+    throw err;
+  }
+
   return parsePackageJson(pullieRcRes.data);
 }

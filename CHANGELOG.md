@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- [fix] Handle case with no `.pullierc` file better
+
 ## 2.0.0-rc3
 
 - [fix] Make resource paths relative in docs page
