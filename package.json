@@ -47,7 +47,7 @@
     "request": "^2.87.0",
     "resolve-cwd": "^2.0.0",
     "slay": "^2.0.0",
-    "slay-config": "^2.2.0",
+    "slay-config": "^2.3.0",
     "slay-error": "^1.0.0",
     "slay-log": "^2.3.0",
     "verify-github-webhook": "^1.0.1",
