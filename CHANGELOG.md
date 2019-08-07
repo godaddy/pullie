@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 2.0.0-rc5
+
 - [fix] Check Collaborator rejects on unknown users, so handle that appropriately
 
 ## 2.0.0-rc4
