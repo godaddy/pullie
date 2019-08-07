@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- [fix] Check Collaborator rejects on unknown users, so handle that appropriately
+
 ## 2.0.0-rc4
 
 - [fix] Handle case with no `.pullierc` file better
