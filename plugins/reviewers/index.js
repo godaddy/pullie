@@ -204,13 +204,16 @@ class ReviewerPlugin {
     })));
 
     return await pReduce(maybeUsers, async (memo, user) => {
-      const res = await context.github.repos.checkCollaborator({
-        ...context.repo(),
-        username: user
-      });
-      const userExists = res.status === 204;
+      try {
+        const res = await context.github.repos.checkCollaborator({
+          ...context.repo(),
+          username: user
+        });
 
-      return userExists ? memo.concat([user]) : memo;
+        return res.status === 204 ? memo.concat([user]) : memo;
+      } catch (err) {
+        return memo;
+      }
     }, []);
   }
 }
