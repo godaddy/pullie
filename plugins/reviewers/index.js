@@ -1,11 +1,12 @@
 const arrayShuffle = require('array-shuffle');
 const pReduce = require('p-reduce');
+const BasePlugin = require('../base');
 const Commenter = require('../../commenter');
 const { parsePackageJson } = require('../../utils');
 
 const REVIEWER_REGEX = /([A-Za-z0-9-_]+)@/;
 
-class ReviewerPlugin {
+class ReviewerPlugin extends BasePlugin {
   /**
    * Reviewer plugin - automatically requests reviews from contributors
    *
@@ -13,12 +14,14 @@ class ReviewerPlugin {
    * @public
    */
   constructor() {
+    super();
     this.defaultCommentFormat = process.env.REVIEWERS_COMMENT_FORMAT;
   }
 
   /**
    * Whether this plugin processes edit actions
    * @public
+   * @override
    * @returns {Boolean} Whether this plugin processes edit actions
    */
   get processesEdits() {
@@ -35,6 +38,7 @@ class ReviewerPlugin {
    *
    * @memberof ReviewerPlugin
    * @public
+   * @override
    * @param {ProbotContext} context webhook context
    * @param {Commenter} commenter Commenter object for aggregating comments to post
    * @param {Object} config Configuration for this plugin

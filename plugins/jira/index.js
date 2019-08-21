@@ -1,10 +1,12 @@
 const request = require('request-promise-native');
+const BasePlugin = require('../base');
 const Commenter = require('../../commenter');
 
 const HAS_JIRA_TICKET = /([A-Z]+-[1-9][0-9]*)/g;
 
-class JiraPlugin {
+class JiraPlugin extends BasePlugin {
   constructor() {
+    super();
     this.jiraConfig = {
       protocol: process.env.JIRA_PROTOCOL,
       host: process.env.JIRA_HOST,
@@ -16,6 +18,7 @@ class JiraPlugin {
   /**
    * Whether this plugin processes edit actions
    * @public
+   * @override
    * @returns {Boolean} Whether this plugin processes edit actions
    */
   get processesEdits() {
@@ -32,6 +35,7 @@ class JiraPlugin {
    *
    * @memberof JiraPlugin
    * @public
+   * @override
    * @param {ProbotContext} context webhook context
    * @param {Commenter} commenter Commenter
    */

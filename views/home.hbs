@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Pullie | A GitHub App that makes your PRs better</title>
-    <link rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
-      integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="prism-coy.css" />
     <style type="text/css">
       section {
@@ -83,9 +82,9 @@
 
       <section id="pullierc">
         <h2>Step 2: Configure Pullie</h2>
-        <p class="lead">Pullie is configured per-repo in a <code>.pullierc</code> file at the repo's root.</p>
-        <p>The <code>.pullierc</code> file is just a simple JSON configuration file. For now, it just sets the list of
-          plugins that should be run on the repo for new PRs. Just toss this file in the root of your repo:</p>
+        <p class="lead">Pullie can be configured per-repo or per-org in a <code>.pullierc</code> file.</p>
+        <p>The <code>.pullierc</code> file is just a simple JSON configuration file. It sets the list of plugins that
+          should be run on the repo for new PRs. Just toss this file in the root of your repo:</p>
         
         <figure class="figure">
 <pre><code>{{#code}}{
@@ -214,6 +213,66 @@
 }{{/code}}</code></pre>
         <figcaption class="figure-caption">Sample Reviewers plugin config</figcaption>
         </figure>
+      </section>
+
+      <section id="org-level-config">
+        <h2>Org-level configuration</h2>
+        <p class="lead">Pullie can be configured at the repo or org level. Configuration settings are merged between
+          the two.</p>
+        <p>Org-level configuration is stored in the <code>.github</code> repo for your org. If you don't have such a
+          repo, you can create one by following
+          <a href="https://help.github.com/en/articles/creating-a-default-community-health-file-for-your-organization"
+            target="_blank">GitHub's instructions here</a>.
+        </p>
+        <p>Org-level configuration is optional. If you only have a repo-level configuration file, that's fine.
+          Repo-level configuration is required and Pullie will ignore your repo if it cannot find a
+          <code>.pullierc</code> file at your repo's root. When processing a PR, Pullie will attempt to load repo-level
+          configuration and then org-level configuration. If it finds both, it will intelligently merge the repo-level
+          configuration on top of the org-level configuration.
+        </p>
+        <p>To use org-level configuration, you must allow Pullie to access the <code>.github</code> repo in your org.
+          If you install Pullie on all repos in your org, that's fine. If you choose specific repos, you'll have to
+          explicitly add the <code>.github</code> repo to that list for org-level configuration to work.</p>
+        <p>If you use org-level configuration, your repo-level configuration files may become quite a bit slimmer.
+          Indeed, if you want to just accept the defaults specified in your org-level configuration, your repo-level
+          file may simply contain an empty object (<code>{}</code>).
+        </p>
+        <h3>Overrides manifests</h3>
+        <p class="lead">Repo-level configuration may be specified as a traditional <code>.pullierc</code> file as
+          described above, or it may be specified in an <strong>overrides manifest</strong>.</p>
+        <p>Overrides manifests are similar to a traditional Pullie configuration file, but define the
+          <code>plugins</code> field as an object with <code>include</code> and <code>exclude</code> fields.
+        </p>
+        <figure class="figure">
+<pre><code>{{#code}}{
+  "plugins": {
+    "include": [
+      "jira",
+      {
+        "plugin": "reviewers",
+        "config": {
+          "howMany": 2
+        }
+      }
+    ],
+    "exclude": [
+      "requiredFile"
+    ]
+  }
+}{{/code}}</code></pre>
+        <figcaption class="figure-caption">Sample overrides manifest config</figcaption>
+        </figure>
+        <p>When merging in an overrides manifest, Pullie performs this process:</p>
+        <ol>
+          <li>Begin with the org-level configuration</li>
+          <li>Exclude any plugins listed in <code>exclude</code></li>
+          <li>Merge in any plugins listed in <code>include</code></li>
+        </ol>
+        <p>Plugin-level configuration is merged intelligently &mdash; each plugin defines how configuration should be
+          merged. Most just do a basic shallow merge. If you specify your repo-level configuration as a traditional
+          Pullie configuration file, it will be treated as if it were an overrides manifest with just an
+          <code>include</code> field.
+        </p>
       </section>
     </main>
     <footer class="text-muted small container">

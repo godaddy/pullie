@@ -2,11 +2,14 @@
 const Commenter = require('./commenter');
 const PluginManager = require('./plugins');
 const { parsePackageJson } = require('./utils');
+const processConfig = require('./config-processor');
 
 /**
  * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
  * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
  * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
+ * @typedef {import('./plugins/base')} BasePlugin
+ * @typedef {{[pluginName: string]: BasePlugin}} PluginManagerType
  */
 /**
  * Process a PR
@@ -21,9 +24,9 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
   };
   context.log.info('Processing PR', logData);
 
-  let config;
+  let repoConfig;
   try {
-    config = await getRepoConfig(context);
+    repoConfig = await getRepoConfig(context);
   } catch (err) {
     context.log.error('Error getting repository config', {
       requestId: context.id,
@@ -32,14 +35,38 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     return;
   }
 
-  if (!config || !Array.isArray(config.plugins) || config.plugins.length === 0) {
+  if (!repoConfig) {
     // No config specified for this repo, nothing to do
     context.log.info('No config specified for repo, nothing to do', logData);
     return;
   }
 
-  const commenter = new Commenter();
+  let orgConfig;
+  try {
+    orgConfig = await getOrgConfig(context);
+  } catch (err) {
+    context.log.warn('Error getting org config', {
+      requestId: context.id,
+      err
+    });
+    orgConfig = null;
+  }
+
+  /** @type {PluginManagerType} */
+  // @ts-ignore
   const pluginManager = new PluginManager();
+  const config = processConfig(pluginManager, orgConfig, repoConfig, invalidPlugin => {
+    context.log.error('Invalid plugin specified in repo config',
+      { repository: context.payload.repository.full_name, plugin: invalidPlugin, requestId: context.id });
+  });
+
+  if (!Array.isArray(config.plugins) || config.plugins.length === 0) {
+    // No plugins to run, nothing to do
+    context.log.info('No plugins to run, nothing to do', logData);
+    return;
+  }
+
+  const commenter = new Commenter();
   for (const pluginConfig of config.plugins) {
     const pluginName = typeof pluginConfig === 'string' ? pluginConfig : pluginConfig.plugin;
     const plugin = pluginManager[pluginName];
@@ -51,8 +78,9 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     if (context.payload.action === 'edited' && !plugin.processesEdits) {
       continue;
     }
+    const cfg = typeof pluginConfig === 'string' ? {} : pluginConfig.config;
     try {
-      await plugin.processRequest(context, commenter, pluginConfig.config || {});
+      await plugin.processRequest(context, commenter, cfg);
     } catch (pluginProcessRequestErr) {
       context.log.error('Error running plugin',
         {
@@ -88,6 +116,29 @@ async function getRepoConfig(context) {
   try {
     pullieRcRes = await context.github.repos.getContents({
       ...context.repo(),
+      path: '.pullierc'
+    });
+  } catch (err) {
+    // If there's no .pullierc, just skip this request. Otherwise, re-throw the error.
+    if (err.status === 404) return;
+    throw err;
+  }
+
+  return parsePackageJson(pullieRcRes.data);
+}
+
+/**
+ * Get org-level config for the org specified in the context
+ *
+ * @param {ProbotContext} context PR webhook context
+ * @returns {Promise<Object>} Config for the repo
+ */
+async function getOrgConfig(context) {
+  let pullieRcRes = {};
+  try {
+    pullieRcRes = await context.github.repos.getContents({
+      owner: context.payload.repository.owner.login,
+      repo: '.github',
       path: '.pullierc'
     });
   } catch (err) {

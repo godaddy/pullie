@@ -9,7 +9,11 @@ describe('Utils', () => {
 
   describe('.parsePackageJson', function () {
     const mockPkg = {
-      content: 'eyJmb28iOiAiYmFyIn0K'
+      content: 'eyJmb28iOiAiYmFyIn0K',
+      encoding: 'base64',
+      url: 'mock',
+      sha: 'mock',
+      size: 1234
     };
 
     it('is a function', function () {
@@ -22,6 +26,7 @@ describe('Utils', () => {
     });
 
     it('returns undefined when passed an input without a content field', function () {
+      // @ts-ignore
       assume(Utils.parsePackageJson({})).does.not.exist();
     });
 

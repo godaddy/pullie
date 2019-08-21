@@ -53,7 +53,7 @@ describe('JiraPlugin', function () {
             title: 'title'
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(requestPostStub.called).is.false();
     });
@@ -72,7 +72,7 @@ describe('JiraPlugin', function () {
             title: 'title'
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(requestPostStub.called).is.false();
     });
@@ -86,7 +86,7 @@ describe('JiraPlugin', function () {
             title: 'title with no Jira tickets'
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(requestPostStub.called).is.false();
     });
@@ -103,7 +103,7 @@ describe('JiraPlugin', function () {
               title: '[AB-1234] title with 1 Jira ticket'
             }
           }
-        }, commenter, {});
+        }, commenter);
       } catch (err) {
         assume(err).is.truthy();
         assume(err).equals(mockError);
@@ -122,7 +122,7 @@ describe('JiraPlugin', function () {
               title: '[AB-1234] title with 1 Jira ticket'
             }
           }
-        }, commenter, {});
+        }, commenter);
       } catch (err) {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: unknown');
@@ -143,7 +143,7 @@ describe('JiraPlugin', function () {
               title: '[AB-1234] title with 1 Jira ticket'
             }
           }
-        }, commenter, {});
+        }, commenter);
       } catch (err) {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: 404');
@@ -173,7 +173,7 @@ describe('JiraPlugin', function () {
             title: '[AB-1234] title with 1 Jira ticket'
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       // @ts-ignore
       assume(requestPostStub.calledWithMatch(
@@ -213,7 +213,7 @@ describe('JiraPlugin', function () {
             title: '[AB-1234] title with 2 Jira tickets [FOO-5678]'
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(requestPostStub.calledWithMatch(
         // @ts-ignore
@@ -253,7 +253,7 @@ describe('JiraPlugin', function () {
             title: 'AB-1234 title with 2 Jira tickets FOO-5678'
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(requestPostStub.calledWithMatch(
         // @ts-ignore
@@ -279,7 +279,7 @@ describe('JiraPlugin', function () {
             }
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(addCommentStub.called).is.false();
     });
@@ -317,7 +317,7 @@ describe('JiraPlugin', function () {
             }
           }
         }
-      }, commenter, {});
+      }, commenter);
 
       assume(requestPostStub.calledWithMatch(
         // @ts-ignore

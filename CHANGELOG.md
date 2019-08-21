@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- [feat] Org-level configuration support
+
 ## 2.0.0-rc5
 
 - [fix] Check Collaborator rejects on unknown users, so handle that appropriately

@@ -11,7 +11,7 @@ module.exports = {
     let contents;
 
     if (pkg && pkg.content) {
-      contents = new Buffer(pkg.content, 'base64');
+      contents = Buffer.from(pkg.content, 'base64');
       contents = JSON.parse(contents.toString());
     }
 

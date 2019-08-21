@@ -15,16 +15,16 @@ const commenter = {
 
 const requiredFilePlugin = new RequiredFilePlugin();
 
-describe('RequiredFilePlugin', () => {
-  after(() => {
+describe('RequiredFilePlugin', function () {
+  after(function () {
     sandbox.restore();
   });
 
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox.resetHistory();
   });
 
-  it('is a constructor', () => {
+  it('is a constructor', function () {
     assume(RequiredFilePlugin).is.a('function');
     assume(RequiredFilePlugin).has.length(0);
     assume(requiredFilePlugin).is.an('object');
@@ -34,8 +34,29 @@ describe('RequiredFilePlugin', () => {
     assume(requiredFilePlugin.processesEdits).is.false();
   });
 
-  describe('.processRequest', () => {
-    it('is a function', () => {
+  describe('.mergeConfig', function () {
+    it('explicitly replaces the base `files` array', function () {
+      const baseConfig = {
+        files: ['one', 'two', 'three'],
+        foo: 'bar',
+        baz: 'blah'
+      };
+      const overrideConfig = {
+        files: ['four', 'five', 'six'],
+        foo: 'rab',
+        gah: 'meh'
+      };
+      assume(requiredFilePlugin.mergeConfig(baseConfig, overrideConfig)).deep.equals({
+        files: ['four', 'five', 'six'],
+        foo: 'rab',
+        baz: 'blah',
+        gah: 'meh'
+      });
+    });
+  });
+
+  describe('.processRequest', function () {
+    it('is a function', function () {
       assume(requiredFilePlugin.processRequest).is.an('asyncfunction');
       assume(requiredFilePlugin.processRequest).has.length(3);
     });
@@ -71,7 +92,7 @@ describe('RequiredFilePlugin', () => {
     });
   });
 
-  describe('.checkFile', () => {
+  describe('.checkFile', function () {
     const mockContext = {
       github: {
         pulls: {
@@ -90,7 +111,7 @@ describe('RequiredFilePlugin', () => {
         return {
           owner: 'org',
           repo: 'repo'
-        }
+        };
       },
       payload: {
         repository: {
