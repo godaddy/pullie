@@ -97,6 +97,19 @@ const processConfig = module.exports = function processConfig(pluginManager, org
  */
 // eslint-disable-next-line max-statements, complexity
 function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvalidPlugin }) {
+  const pluginEqual = {
+    literal(x, y) {
+      if (typeof x !== 'string') return false;
+      return x === y
+        || (/** @type {Plugin} */(y).plugin && /** @type {Plugin} */(y).plugin === x);
+    },
+    obj(x, y) {
+      if (typeof x !== 'object') return false;
+      return x.plugin === y
+        || (/** @type {Plugin} */(y).plugin && /** @type {Plugin} */(y).plugin === x.plugin);
+    }
+  };
+
   const plugins = deepClone(orgPlugins);
   for (const pluginToInclude of repoIncludeList) {
     const pluginName = typeof pluginToInclude === 'string' ? pluginToInclude : pluginToInclude.plugin;
@@ -107,20 +120,16 @@ function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvali
       continue;
     }
 
-    if (typeof pluginToInclude === 'string' &&
-      !plugins.find(p => p === pluginToInclude ||
-        (/** @type {Plugin} */(p).plugin && /** @type {Plugin} */(p).plugin === pluginToInclude))) {
-      // If the entry in the include list is just a string, we can simply add it if it's not present.
+    const existingPlugin = plugins.find(p => {
+      return pluginEqual.literal(pluginToInclude, p)
+        || pluginEqual.obj(pluginToInclude, p);
+    });
+
+    if (!existingPlugin) {
+      // If it's not in the existing list, just add it directly
       plugins.push(pluginToInclude);
-    } else if (typeof pluginToInclude === 'object' && pluginToInclude.plugin) {
-      // If the entry in the include list is an object, we have to be more careful.
-      const existingPlugin = plugins.find(
-        p => p === pluginToInclude.plugin ||
-        (/** @type {Plugin} */(p).plugin && /** @type {Plugin} */(p).plugin === pluginToInclude.plugin));
-      if (!existingPlugin) {
-        // If it's not in the existing list, just add it directly
-        plugins.push(pluginToInclude);
-      } else if (typeof existingPlugin === 'string' || !existingPlugin.config) {
+    } else if (typeof pluginToInclude === 'object') {
+      if (typeof existingPlugin === 'string' || !existingPlugin.config) {
         // If it is in the existing list but only as a string, we can just replace the string with the object.
         // Same story if the existing plugin has no config field set.
         const idx = plugins.indexOf(existingPlugin);
