@@ -382,7 +382,7 @@ describe('ReviewersPlugin', function () {
       }
     });
 
-    it('hands off the packaged file to parsePackageJson for parsing', async function () {
+    it('hands off the packaged file to parseBase64Json for parsing', async function () {
       const mockPackageJson = {
         foo: 'bar'
       };

@@ -37,7 +37,7 @@ const processPR = proxyquire('../../processor', {
   './commenter': MockCommenter,
   './plugins': MockPluginManager,
   './utils': {
-    parsePackageJson: sinon.stub().returnsArg(0)
+    parseBase64Json: sinon.stub().returnsArg(0)
   }
 });
 

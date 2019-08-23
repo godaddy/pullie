@@ -147,9 +147,9 @@ function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvali
 function applyExcludeList({ orgPlugins, repoExcludeList }) {
   return orgPlugins.filter(plugin => {
     if (typeof plugin === 'string') {
-      return !~repoExcludeList.indexOf(plugin);
+      return !repoExcludeList.includes(plugin);
     } else if (plugin.plugin) {
-      return !~repoExcludeList.indexOf(plugin.plugin);
+      return !repoExcludeList.includes(plugin.plugin);
     }
 
     // Default to leaving things in the plugin list

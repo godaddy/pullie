@@ -2,7 +2,7 @@ const arrayShuffle = require('array-shuffle');
 const pReduce = require('p-reduce');
 const BasePlugin = require('../base');
 const Commenter = require('../../commenter');
-const { parsePackageJson } = require('../../utils');
+const { parseBase64Json } = require('../../utils');
 
 const REVIEWER_REGEX = /([A-Za-z0-9-_]+)@/;
 
@@ -174,7 +174,7 @@ class ReviewerPlugin extends BasePlugin {
       path: 'package.json'
     });
     if (pkg.status === 404) return;
-    return await parsePackageJson(pkg.data);
+    return await parseBase64Json(pkg.data);
   }
 
   /**

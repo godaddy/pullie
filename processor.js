@@ -1,7 +1,7 @@
 /* eslint no-continue: 0 */
 const Commenter = require('./commenter');
 const PluginManager = require('./plugins');
-const { parsePackageJson } = require('./utils');
+const { parseBase64Json } = require('./utils');
 const processConfig = require('./config-processor');
 
 /**
@@ -124,7 +124,7 @@ async function getRepoConfig(context) {
     throw err;
   }
 
-  return parsePackageJson(pullieRcRes.data);
+  return parseBase64Json(pullieRcRes.data);
 }
 
 /**
@@ -147,5 +147,5 @@ async function getOrgConfig(context) {
     throw err;
   }
 
-  return parsePackageJson(pullieRcRes.data);
+  return parseBase64Json(pullieRcRes.data);
 }
