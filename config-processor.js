@@ -63,16 +63,20 @@ const processConfig = module.exports = function processConfig(pluginManager, org
   // Now, check if the repo's plugins field is a merge manifest or a normal list
   if (Array.isArray(repoPlugins)) {
     // It is a list, treat it as an include list
-    plugins = applyIncludeList(pluginManager, orgPlugins, repoPlugins, onInvalidPlugin);
+    plugins = applyIncludeList({ pluginManager, orgPlugins, repoIncludeList: repoPlugins, onInvalidPlugin });
   } else if (typeof repoPlugins === 'object') {
     // It is a merge manifest, handle excludes first
     if (repoPlugins.exclude) {
-      plugins = applyExcludeList(orgPlugins, repoPlugins.exclude);
+      plugins = applyExcludeList({ orgPlugins, repoExcludeList: repoPlugins.exclude });
     }
 
     // Now handle includes
     if (repoPlugins.include) {
-      plugins = applyIncludeList(pluginManager, plugins, repoPlugins.include, onInvalidPlugin);
+      plugins = applyIncludeList({
+        pluginManager,
+        orgPlugins: plugins,
+        repoIncludeList: repoPlugins.include,
+        onInvalidPlugin });
     }
   }
 
@@ -84,14 +88,15 @@ const processConfig = module.exports = function processConfig(pluginManager, org
 /**
  * Apply the include list of plugin names and return the merged plugin list
  *
- * @param {PluginManager} pluginManager The plugin manager
- * @param {PluginList} orgPlugins The list of plugins configured on the org
- * @param {PluginList} repoIncludeList A list of plugins to merge into the config
- * @param {OnInvalidPluginCallback} [onInvalidPlugin] Function to call when an invalid plugin is encountered
+ * @param {Object} opts Options
+ * @param {PluginManager} opts.pluginManager The plugin manager
+ * @param {PluginList} opts.orgPlugins The list of plugins configured on the org
+ * @param {PluginList} opts.repoIncludeList A list of plugins to merge into the config
+ * @param {OnInvalidPluginCallback} [opts.onInvalidPlugin] Function to call when an invalid plugin is encountered
  * @returns {PluginList} The filtered list of plugins
  */
 // eslint-disable-next-line max-statements, complexity
-function applyIncludeList(pluginManager, orgPlugins, repoIncludeList, onInvalidPlugin) {
+function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvalidPlugin }) {
   const plugins = deepClone(orgPlugins);
   for (const pluginToInclude of repoIncludeList) {
     const pluginName = typeof pluginToInclude === 'string' ? pluginToInclude : pluginToInclude.plugin;
@@ -134,11 +139,12 @@ function applyIncludeList(pluginManager, orgPlugins, repoIncludeList, onInvalidP
 /**
  * Apply the exclude list of plugin names and return the filtered plugin list
  *
- * @param {PluginList} orgPlugins The list of plugins configured on the org
- * @param {string[]} repoExcludeList A list of plugin names to exclude
+ * @param {Object} opts Options
+ * @param {PluginList} opts.orgPlugins The list of plugins configured on the org
+ * @param {string[]} opts.repoExcludeList A list of plugin names to exclude
  * @returns {PluginList} The filtered list of plugins
  */
-function applyExcludeList(orgPlugins, repoExcludeList) {
+function applyExcludeList({ orgPlugins, repoExcludeList }) {
   return orgPlugins.filter(plugin => {
     if (typeof plugin === 'string') {
       return !~repoExcludeList.indexOf(plugin);

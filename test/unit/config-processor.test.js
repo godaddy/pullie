@@ -246,7 +246,7 @@ describe('processConfig', function () {
 
     it('is a function', function () {
       assume(applyIncludeList).is.a('function');
-      assume(applyIncludeList).has.length(4);
+      assume(applyIncludeList).has.length(1);
     });
 
     it('does not mutate the orgPlugins parameter', function () {
@@ -254,7 +254,7 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      applyIncludeList(mockPluginManager, orgPlugins, ['three']);
+      applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: ['three'] });
       assume(orgPlugins).deep.equals([
         'one',
         'two'
@@ -266,7 +266,7 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      assume(applyIncludeList(mockPluginManager, orgPlugins, ['three'])).deep.equals([
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: ['three'] })).deep.equals([
         'one',
         'two',
         'three'
@@ -278,7 +278,7 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      assume(applyIncludeList(mockPluginManager, orgPlugins, ['two'])).deep.equals([
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: ['two'] })).deep.equals([
         'one',
         'two'
       ]);
@@ -294,7 +294,7 @@ describe('processConfig', function () {
           }
         }
       ];
-      assume(applyIncludeList(mockPluginManager, orgPlugins, ['two'])).deep.equals([
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: ['two'] })).deep.equals([
         'one',
         {
           plugin: 'two',
@@ -311,7 +311,7 @@ describe('processConfig', function () {
         'two'
       ];
       // @ts-ignore
-      assume(applyIncludeList(mockPluginManager, orgPlugins, [123])).deep.equals([
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: [123] })).deep.equals([
         'one',
         'two'
       ]);
@@ -323,7 +323,7 @@ describe('processConfig', function () {
         'two'
       ];
       // @ts-ignore
-      assume(applyIncludeList(mockPluginManager, orgPlugins, [{}])).deep.equals([
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: [{}] })).deep.equals([
         'one',
         'two'
       ]);
@@ -334,12 +334,12 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      assume(applyIncludeList(mockPluginManager, orgPlugins, [{
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: [{
         plugin: 'three',
         config: {
           foo: 'bar'
         }
-      }])).deep.equals([
+      }] })).deep.equals([
         'one',
         'two',
         {
@@ -356,12 +356,12 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      assume(applyIncludeList(mockPluginManager, orgPlugins, [{
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: [{
         plugin: 'two',
         config: {
           foo: 'bar'
         }
-      }])).deep.equals([
+      }] })).deep.equals([
         'one',
         {
           plugin: 'two',
@@ -380,12 +380,12 @@ describe('processConfig', function () {
           somethingElse: true
         }
       ];
-      assume(applyIncludeList(mockPluginManager, orgPlugins, [{
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: [{
         plugin: 'two',
         config: {
           foo: 'bar'
         }
-      }])).deep.equals([
+      }] })).deep.equals([
         'one',
         {
           plugin: 'two',
@@ -406,13 +406,13 @@ describe('processConfig', function () {
         }
       ];
       const onInvalidPluginStub = sinon.stub();
-      assume(applyIncludeList(mockPluginManager, orgPlugins, [{
+      assume(applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList: [{
         plugin: 'unknownPlugin',
         config: {
           baz: 'blah'
         }
       },
-      'anotherUnknownPlugin'], onInvalidPluginStub)).deep.equals([
+      'anotherUnknownPlugin'], onInvalidPlugin: onInvalidPluginStub })).deep.equals([
         {
           plugin: 'one',
           config: {
@@ -442,7 +442,7 @@ describe('processConfig', function () {
           gah: 'meh'
         }
       }];
-      applyIncludeList(mockPluginManager, orgPlugins, repoIncludeList);
+      applyIncludeList({ pluginManager: mockPluginManager, orgPlugins, repoIncludeList });
 
       const orgTwoConfig = /** @type {Plugin} */ (orgPlugins[1]).config;
       const repoTwoConfig = repoIncludeList[0].config;
@@ -459,7 +459,7 @@ describe('processConfig', function () {
 
     it('is a function', function () {
       assume(applyExcludeList).is.a('function');
-      assume(applyExcludeList).has.length(2);
+      assume(applyExcludeList).has.length(1);
     });
 
     it('keeps all plugins in the list by default', function () {
@@ -467,7 +467,7 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      assume(applyExcludeList(orgPlugins, [])).deep.equals(orgPlugins);
+      assume(applyExcludeList({ orgPlugins, repoExcludeList: [] })).deep.equals(orgPlugins);
     });
 
     it('ignores invalid entries in the org plugin list and keeps plugins by default', function () {
@@ -476,7 +476,7 @@ describe('processConfig', function () {
         'two',
         123
       ];
-      assume(applyExcludeList(orgPlugins, [123])).deep.equals(orgPlugins);
+      assume(applyExcludeList({ orgPlugins, repoExcludeList: [123] })).deep.equals(orgPlugins);
     });
 
     it('excludes plugins that are listed by name', function () {
@@ -484,7 +484,7 @@ describe('processConfig', function () {
         'one',
         'two'
       ];
-      assume(applyExcludeList(orgPlugins, ['one'])).deep.equals(['two']);
+      assume(applyExcludeList({ orgPlugins, repoExcludeList: ['one'] })).deep.equals(['two']);
     });
 
     it('excludes plugins that are listed as objects', function () {
@@ -497,7 +497,7 @@ describe('processConfig', function () {
           plugin: 'two'
         }
       ];
-      assume(applyExcludeList(orgPlugins, ['one'])).deep.equals([{ plugin: 'two' }]);
+      assume(applyExcludeList({ orgPlugins, repoExcludeList: ['one'] })).deep.equals([{ plugin: 'two' }]);
     });
 
     it('works properly with heterogeneous sets of org plugins', function () {
@@ -512,7 +512,9 @@ describe('processConfig', function () {
         'three',
         'four'
       ];
-      assume(applyExcludeList(orgPlugins, ['one', 'three'])).deep.equals([{ plugin: 'two' }, 'four']);
+      assume(applyExcludeList({ orgPlugins, repoExcludeList: ['one', 'three'] })).deep.equals([
+        { plugin: 'two' }, 'four'
+      ]);
     });
   });
 });
