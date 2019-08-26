@@ -7,11 +7,12 @@ const pullieApp = require('../../');
 const { Probot } = require('probot');
 const { assumeValidResponse } = require('./helpers');
 const openPRPayload = require('../fixtures/payloads/open-pr.json');
+const mockOrgPullieRC = require('../fixtures/payloads/mock-org-pullierc.json');
 const mockPullieRC = require('../fixtures/payloads/mock-pullierc.json');
 const mockPackageJson = require('../fixtures/payloads/mock-packagejson.json');
 
-function nockFile(scope, urlPath, contents) {
-  scope.get('/api/v3/repos/org/repo/contents/' + urlPath)
+function nockFile(scope, urlPath, contents, repo = 'repo') {
+  scope.get(`/api/v3/repos/org/${repo}/contents/` + urlPath)
     .reply(200, {
       content: Buffer.from(contents).toString('base64'),
       path: urlPath
@@ -51,6 +52,7 @@ describe('Pullie (integration)', function () {
       .post('/api/v3/repos/org/repo/issues/165/comments')
       .reply(200);
 
+    nockFile(github, '.pullierc', JSON.stringify(mockOrgPullieRC), '.github');
     nockFile(github, '.pullierc', JSON.stringify(mockPullieRC));
     nockFile(github, 'package.json', JSON.stringify(mockPackageJson));
     nockFile(github, 'CHANGELOG.md', '# Mock changelog');
@@ -101,6 +103,7 @@ describe('Pullie (integration)', function () {
     it('properly processes a pull request', async function () {
       this.timeout(5000);
       await pullie.receive({
+        id: 'mock',
         name: 'pull_request',
         payload: openPRPayload
       });
@@ -112,6 +115,7 @@ describe('Pullie (integration)', function () {
     let baseUrl;
     before(function () {
       pullie.start();
+      // @ts-ignore
       const { port } = pullie.httpServer.address();
       baseUrl = `http://localhost:${port}/docs`;
     });
@@ -145,6 +149,7 @@ describe('Pullie (integration)', function () {
       pullie = new Probot({ id: 123, cert: mockCert });
       pullie.load(pullieApp);
       pullie.start();
+      // @ts-ignore
       const { port } = pullie.httpServer.address();
       baseUrl = `http://localhost:${port}/docs`;
     });

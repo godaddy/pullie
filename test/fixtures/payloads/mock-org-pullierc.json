@@ -1,0 +1,22 @@
+{
+  "plugins": [
+    "jira",
+    {
+      "plugin": "reviewers",
+      "config": {
+        "howMany": 2
+      }
+    },
+    {
+      "plugin": "requiredFile",
+      "config": {
+        "files": [
+          {
+            "path": "SOMEFILE.md",
+            "message": "Missing change to SOMEFILE.md"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -25,7 +25,7 @@
     "test:unit:debug": "mocha --inspect-brk test/unit/*.test.js test/unit/**/*.test.js",
     "test:integration": "mocha test/integration/*.test.js",
     "test:integration:debug": "mocha --inspect-brk test/integration/*.test.js",
-    "pretest": "npm run lint:fix",
+    "posttest": "npm run lint:fix",
     "test": "nyc mocha test/unit/*.test.js test/unit/**/*.test.js test/integration/*.test.js",
     "dev": "nodemon",
     "start": "probot run ./index.js",
@@ -33,6 +33,8 @@
   },
   "dependencies": {
     "array-shuffle": "^1.0.1",
+    "clone-deep": "^4.0.1",
+    "deepmerge": "^4.0.0",
     "diagnostics": "^2.0.0",
     "express": "^4.16.4",
     "handlebars": "^4.1.2",

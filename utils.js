@@ -7,11 +7,11 @@ module.exports = {
    * @param {GitBlobResponse} pkg package.json blob from GitHub
    * @returns {Object} Parsed package.json
    */
-  parsePackageJson(pkg) {
+  parseBase64Json(pkg) {
     let contents;
 
     if (pkg && pkg.content) {
-      contents = new Buffer(pkg.content, 'base64');
+      contents = Buffer.from(pkg.content, 'base64');
       contents = JSON.parse(contents.toString());
     }
 

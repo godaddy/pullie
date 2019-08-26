@@ -1,12 +1,6 @@
 {
   "plugins": [
-    "jira",
-    {
-      "plugin": "reviewers",
-      "config": {
-        "howMany": 2
-      }
-    },
+    "reviewers",
     {
       "plugin": "requiredFile",
       "config": {

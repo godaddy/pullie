@@ -1,13 +1,34 @@
+const BasePlugin = require('../base');
 const Commenter = require('../../commenter');
 
-class RequiredFilePlugin {
+class RequiredFilePlugin extends BasePlugin {
   /**
    * Whether this plugin processes edit actions
    * @public
+   * @override
    * @returns {Boolean} Whether this plugin processes edit actions
    */
   get processesEdits() {
     return false;
+  }
+
+  /**
+   * Merge the specified overrideConfig on top of the specified base config.
+   *
+   * @param {Object} baseConfig The base config
+   * @param {Object} overrideConfig The override config
+   * @returns {Object} The merged config
+   * @public
+   * @override
+   * @memberof RequiredFilePlugin
+   */
+  mergeConfig(baseConfig, overrideConfig) {
+    // Explicitly replace the files array with the one in overrides
+    return {
+      ...baseConfig,
+      ...overrideConfig,
+      files: overrideConfig.files
+    };
   }
 
   /**
@@ -20,6 +41,7 @@ class RequiredFilePlugin {
    *
    * @memberof RequiredFilePlugin
    * @public
+   * @override
    * @param {ProbotContext} context webhook context
    * @param {Commenter} commenter Commenter
    * @param {Object} config Configuration for this plugin
@@ -56,8 +78,8 @@ class RequiredFilePlugin {
     if (!filePath) {
       throw new Error('No file path specified for required file.');
     }
-    // @ts-ignore
-    const message = '⚠️ ' + (file.message ||
+
+    const message = '⚠️ ' + (typeof file === 'object' && file.message ||
       `You're missing a change to ${filePath}, which is a requirement for changes to this repo.`);
 
     const existsRes = await context.github.repos.getContents({

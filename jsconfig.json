@@ -1,5 +1,9 @@
 {
+  "exclude": [
+    "node_modules"
+  ],
   "compilerOptions": {
+    "moduleResolution": "node",
     "resolveJsonModule": true
   }
 }
