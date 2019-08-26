@@ -1,5 +1,7 @@
 # CHANGELOG
 
+### 2.0.0-rc6
+
 - [feat] Org-level configuration support
 
 ## 2.0.0-rc5
