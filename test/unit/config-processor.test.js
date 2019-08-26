@@ -52,6 +52,20 @@ describe('processConfig', function () {
     assume(processed).deep.equals(orgConfig);
   });
 
+  it('returns the org config when the repo config is an empty object', function () {
+    const orgConfig = {
+      foo: 'bar',
+      plugins: [
+        'blah'
+      ]
+    };
+
+    const processed = processConfig(mockPluginManager, orgConfig, {});
+    // Not same object instance
+    assume(processed).does.not.equal(orgConfig);
+    assume(processed).deep.equals(orgConfig);
+  });
+
   it('merges properly when org config is not specified', function () {
     const repoConfig = {
       foo: 'rab',
