@@ -1,6 +1,10 @@
 # CHANGELOG
 
-### 2.0.0-rc6
+## 2.0.0
+
+- **MAJOR:** Final release of Pullie 2.0.0
+
+## 2.0.0-rc6
 
 - [feat] Org-level configuration support
 
