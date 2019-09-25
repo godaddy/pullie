@@ -328,5 +328,31 @@ describe('JiraPlugin', function () {
       assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
         .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
     });
+
+    it('does not post when no Jira tickets are actually found in Jira query', async function () {
+      requestPostStub.resolves({
+        statusCode: 200,
+        body: {
+          issues: []
+        }
+      });
+      await jiraPlugin.processRequest({
+        payload: {
+          action: 'created',
+          // @ts-ignore
+          pull_request: {
+            title: '[AB-1234][AB-3456] title with 2 Jira tickets'
+          }
+        }
+      }, commenter);
+
+      assume(requestPostStub.calledWithMatch(
+        // @ts-ignore
+        sinon.match.string,
+        sinon.match.hasNested('body.jql', sinon.match('AB-1234')
+          .and(sinon.match('AB-3456'))
+          .and(sinon.match(','))))).is.true();
+      assume(addCommentStub.called).is.false();
+    });
   });
 });

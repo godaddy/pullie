@@ -105,6 +105,8 @@ class JiraPlugin extends BasePlugin {
       throw new Error(
         `Error retrieving Jira ticket info. Status code: ${(res && res.statusCode) || 'unknown'} from Jira.`);
 
+    if (!res.body.issues.length) return;
+
     const ticketList = res.body.issues.reduce((acc, ticket) => {
       return acc +
         // eslint-disable-next-line max-len
