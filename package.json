@@ -37,7 +37,7 @@
     "deepmerge": "^4.0.0",
     "diagnostics": "^2.0.2",
     "express": "^4.17.1",
-    "handlebars": "^4.3.1",
+    "handlebars": "^4.4.5",
     "p-reduce": "^2.1.0",
     "prismjs": "^1.17.1",
     "probot": "^9.5.0",
