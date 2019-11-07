@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.1
+
+- Update dependencies
+
 ## 2.0.0
 
 - **MAJOR:** Final release of Pullie 2.0.0
