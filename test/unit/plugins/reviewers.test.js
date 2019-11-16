@@ -1,5 +1,6 @@
 const assume = require('assume');
 const sinon = require('sinon');
+const clone = require('clone-deep');
 
 const ReviewersPlugin = require('../../../plugins/reviewers');
 const Commenter = require('../../../commenter');
@@ -55,6 +56,7 @@ describe('ReviewersPlugin', function () {
       };
     },
     payload: {
+      action: 'opened',
       repository: {
         full_name: 'org/repo'
       },
@@ -62,7 +64,8 @@ describe('ReviewersPlugin', function () {
         number: 1234,
         user: {
           login: 'jdoe'
-        }
+        },
+        draft: false
       }
     }
   };
@@ -71,10 +74,67 @@ describe('ReviewersPlugin', function () {
     assume(reviewersPlugin.processesEdits).is.false();
   });
 
+  it('processes "ready for review" actions', function () {
+    assume(reviewersPlugin.processesReadyForReview).is.true();
+  });
+
   describe('.processRequest', function () {
     it('is a function', function () {
       assume(reviewersPlugin.processRequest).is.an('asyncfunction');
       assume(reviewersPlugin.processRequest).has.length(3);
+    });
+
+    it('bails out if PR is a draft and requestForDrafts is false', async function () {
+      const draftContext = clone(mockContext);
+      draftContext.payload.pull_request.draft = true;
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews');
+      await reviewersPlugin.processRequest(draftContext, commenter, null);
+      assume(requestReviewsStub.called).is.false();
+      requestReviewsStub.restore();
+    });
+
+    it('requests reviews if PR is a draft and requestForDrafts is true', async function () {
+      const draftContext = clone(mockContext);
+      draftContext.payload.pull_request.draft = true;
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
+      await reviewersPlugin.processRequest(draftContext, commenter, {
+        requestForDrafts: true,
+        reviewers: ['foo'],
+        howMany: 1
+      });
+      assume(requestReviewsStub.called).is.true();
+      requestReviewsStub.restore();
+    });
+
+    it('requests reviews if PR is marked ready for review and requestForDrafts is false', async function () {
+      const draftContext = clone(mockContext);
+      draftContext.payload.action = 'ready_for_review';
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
+      await reviewersPlugin.processRequest(draftContext, commenter, {
+        requestForDrafts: false,
+        reviewers: ['foo'],
+        howMany: 1
+      });
+      assume(requestReviewsStub.called).is.true();
+      requestReviewsStub.restore();
+    });
+
+    it('bails out if PR is marked ready for review and requestForDrafts is true', async function () {
+      // Since reviews would have already been requested when draft was opened
+      const draftContext = clone(mockContext);
+      draftContext.payload.action = 'ready_for_review';
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
+      await reviewersPlugin.processRequest(draftContext, commenter, {
+        requestForDrafts: true,
+        reviewers: ['foo'],
+        howMany: 1
+      });
+      assume(requestReviewsStub.called).is.false();
+      requestReviewsStub.restore();
     });
 
     it('bails out if getPackageJson returns an error', async function () {

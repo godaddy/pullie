@@ -28,6 +28,10 @@ class ReviewerPlugin extends BasePlugin {
     return false;
   }
 
+  get processesReadyForReview() {
+    return true;
+  }
+
   /**
    * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
    * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
@@ -47,9 +51,20 @@ class ReviewerPlugin extends BasePlugin {
    * @param {Number} [config.howMany] Number of reviewers to choose from the set of contributors and maintainers,
    *  defaults to choosing all of the possible reviewers
    * @param {String} [config.commentFormat] Format for comment
+   * @param {Boolean} [config.requestForDrafts=false] Whether to request reviews for draft PRs. Default false.
    */
   async processRequest(context, commenter, config) {
     config = config || {};
+    const data = context.payload;
+    const isReadyForReviewEvent = data.action === 'ready_for_review';
+
+    // Don't request reviews for draft PRs unless explicitly configured to
+    if (data.pull_request.draft && !config.requestForDrafts) return;
+
+    // If we are configured to request reviews for draft PRs, don't request them again after a PR is marked as ready
+    // for review
+    if (isReadyForReviewEvent && config.requestForDrafts) return;
+
     const commentFormat = config.commentFormat || this.defaultCommentFormat;
     if (config.reviewers) {
       await this.requestReviews(context, config.reviewers, config.howMany, commentFormat, commenter);

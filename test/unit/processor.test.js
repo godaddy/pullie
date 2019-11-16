@@ -28,6 +28,7 @@ class MockPluginManager {
     };
     this.mockPlugin3 = {
       processesEdits: true,
+      processesReadyForReview: true,
       processRequest: processRequestStub3,
       mergeConfig: BasePlugin.prototype.mergeConfig
     };
@@ -253,6 +254,18 @@ describe('Processor', () => {
     assume(infoLogStub.calledWith('Finished processing PR')).is.true();
     assume(createCommentStub.called).is.true();
   });
+
+  it('skips plugins that do not process "ready for review" when processing a PR being marked as such',
+    async function () {
+      mockContext.payload.action = 'ready_for_review';
+      await processPR(mockContext);
+      assume(errorLogStub.called).is.false();
+      assume(processRequestStub1.called).is.false();
+      assume(processRequestStub2.called).is.false();
+      assume(processRequestStub3.called).is.true();
+      assume(infoLogStub.calledWith('Finished processing PR')).is.true();
+      assume(createCommentStub.called).is.true();
+    });
 
   it('passes down plugin config', async function () {
     await processPR(mockContext);

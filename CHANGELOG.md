@@ -1,5 +1,8 @@
 # CHANGELOG
 
+- **BREAKING:** Suppress review requests for draft PRs unless `requestForDrafts` is set to `true` in reviewers plugin
+  config.
+
 ## 2.0.1
 
 - Update dependencies
