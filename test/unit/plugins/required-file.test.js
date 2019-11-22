@@ -4,24 +4,27 @@ const sinon = require('sinon');
 const RequiredFilePlugin = require('../../../plugins/required-file');
 
 const sandbox = sinon.createSandbox();
-const getContentsStub = sandbox.stub().resolves({ status: 200 });
-const getFilesInPullRequestStub = sandbox.stub().resolves([]);
-const addCommentStub = sandbox.stub();
-const commenter = {
-  addComment: addCommentStub,
-  comments: null,
-  flushToString: null
-};
+let getContentsStub;
+let getFilesInPullRequestStub;
+let addCommentStub;
+let commenter;
 
 const requiredFilePlugin = new RequiredFilePlugin();
 
 describe('RequiredFilePlugin', function () {
-  after(function () {
+  afterEach(function () {
     sandbox.restore();
   });
 
   beforeEach(function () {
-    sandbox.resetHistory();
+    getContentsStub = sandbox.stub().resolves({ status: 200 });
+    getFilesInPullRequestStub = sandbox.stub().resolves([]);
+    addCommentStub = sandbox.stub();
+    commenter = {
+      addComment: addCommentStub,
+      comments: null,
+      flushToString: null
+    };
   });
 
   it('is a constructor', function () {
@@ -69,59 +72,57 @@ describe('RequiredFilePlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(checkFileSpy.called).is.false();
-      } finally {
-        checkFileSpy.restore();
       }
     });
 
     it('runs checkFile on all specified files', async function () {
       const checkFileStub = sandbox.stub(requiredFilePlugin, 'checkFile').resolves();
-      try {
-        await requiredFilePlugin.processRequest(null, commenter, {
-          files: [
-            'one',
-            'two',
-            'three'
-          ]
-        });
+      await requiredFilePlugin.processRequest(null, commenter, {
+        files: [
+          'one',
+          'two',
+          'three'
+        ]
+      });
 
-        assume(checkFileStub.callCount).equals(3);
-      } finally {
-        checkFileStub.restore();
-      }
+      assume(checkFileStub.callCount).equals(3);
     });
   });
 
   describe('.checkFile', function () {
-    const mockContext = {
-      github: {
-        pulls: {
-          listFiles: {
-            endpoint: {
-              merge: sandbox.stub()
+    let mockContext;
+
+    beforeEach(function () {
+      mockContext = {
+        github: {
+          pulls: {
+            listFiles: {
+              endpoint: {
+                merge: sandbox.stub()
+              }
             }
+          },
+          repos: {
+            getContents: getContentsStub
+          },
+          paginate: getFilesInPullRequestStub
+        },
+        repo() {
+          return {
+            owner: 'org',
+            repo: 'repo'
+          };
+        },
+        payload: {
+          repository: {
+            full_name: 'org/repo'
+          },
+          pull_request: {
+            number: 1234
           }
-        },
-        repos: {
-          getContents: getContentsStub
-        },
-        paginate: getFilesInPullRequestStub
-      },
-      repo() {
-        return {
-          owner: 'org',
-          repo: 'repo'
-        };
-      },
-      payload: {
-        repository: {
-          full_name: 'org/repo'
-        },
-        pull_request: {
-          number: 1234
         }
-      }
-    };
+      };
+    });
 
     it('bails out if no file path is passed in', async function () {
       try {
