@@ -78,6 +78,9 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     if (context.payload.action === 'edited' && !plugin.processesEdits) {
       continue;
     }
+    if (context.payload.action === 'ready_for_review' && !plugin.processesReadyForReview) {
+      continue;
+    }
     const cfg = typeof pluginConfig === 'string' ? {} : pluginConfig.config;
     try {
       await plugin.processRequest(context, commenter, cfg);

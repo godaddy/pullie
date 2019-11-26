@@ -2,6 +2,7 @@ const assume = require('assume');
 const BasePlugin = require('../../../plugins/base');
 
 describe('Base plugin', function () {
+  /** @type {BasePlugin} */
   let basePlugin;
   beforeEach(function () {
     basePlugin = new BasePlugin();
@@ -48,6 +49,18 @@ describe('Base plugin', function () {
 
     it('returns false', function () {
       assume(basePlugin.processesEdits).is.false();
+    });
+  });
+
+  describe('.processesReadyForReview', function () {
+    it('is a getter', function () {
+      const descriptor = Object.getOwnPropertyDescriptor(BasePlugin.prototype, 'processesReadyForReview');
+      assume(descriptor).hasOwn('get');
+      assume(descriptor.get).is.a('function');
+    });
+
+    it('returns false', function () {
+      assume(basePlugin.processesReadyForReview).is.false();
     });
   });
 

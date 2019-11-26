@@ -29,6 +29,10 @@ module.exports = class BasePlugin {
     return false;
   }
 
+  get processesReadyForReview() {
+    return false;
+  }
+
   /**
    * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
    * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges

@@ -192,6 +192,9 @@
         <p><code>commentFormat</code> specifies an optional comment to post when reviews are requested. The token
           <code>%s</code> will be replaced with a list of @-mentioned usernames for the reviewers being requested.
           If omitted, no comment will be posted.</p>
+        <p><code>requestForDrafts</code> specifies whether reviews should be requested for draft PRs. The default
+          behavior is <code>false</code>, meaning that draft PRs will not have reviews requested. After a draft PR is
+          marked as ready for review, Pullie will request reviews accordingly.</p>
         <p>Candidate reviewers are checked against the GitHub API to ensure that they actually exist as users before
           their review is requested.
         </p>

@@ -1,29 +1,73 @@
 const assume = require('assume');
 const sinon = require('sinon');
+const clone = require('clone-deep');
 
 const ReviewersPlugin = require('../../../plugins/reviewers');
 const Commenter = require('../../../commenter');
 
 const sandbox = sinon.createSandbox();
-const requestReviewersStub = sandbox.stub().resolves();
-const getFileContentsStub = sandbox.stub().resolves({ status: 404 });
-const userExistsStub = sandbox.stub().resolves({ status: 404 });
-const addCommentStub = sandbox.stub();
-const commenter = {
-  addComment: addCommentStub,
-  comments: null,
-  flushToString: null
-};
+let requestReviewersStub;
+let getFileContentsStub;
+let userExistsStub;
+let addCommentStub;
+let commenter;
 
 const reviewersPlugin = new ReviewersPlugin();
 
 describe('ReviewersPlugin', function () {
-  after(function () {
+  afterEach(function () {
     sandbox.restore();
   });
 
+  let mockContext;
+
   beforeEach(function () {
-    sandbox.resetHistory();
+    requestReviewersStub = sandbox.stub().resolves();
+    getFileContentsStub = sandbox.stub().resolves({ status: 404 });
+    userExistsStub = sandbox.stub().resolves({ status: 404 });
+    addCommentStub = sandbox.stub();
+    commenter = {
+      addComment: addCommentStub,
+      comments: null,
+      flushToString: null
+    };
+
+    mockContext = {
+      github: {
+        pulls: {
+          createReviewRequest: requestReviewersStub
+        },
+        repos: {
+          checkCollaborator: userExistsStub,
+          getContents: getFileContentsStub
+        }
+      },
+      issue() {
+        return {
+          ...this.repo(),
+          number: 1234
+        };
+      },
+      repo() {
+        return {
+          owner: 'org',
+          repo: 'repo'
+        };
+      },
+      payload: {
+        action: 'opened',
+        repository: {
+          full_name: 'org/repo'
+        },
+        pull_request: {
+          number: 1234,
+          user: {
+            login: 'jdoe'
+          },
+          draft: false
+        }
+      }
+    };
   });
 
   it('is a constructor', function () {
@@ -32,43 +76,12 @@ describe('ReviewersPlugin', function () {
     assume(reviewersPlugin).is.an('object');
   });
 
-  const mockContext = {
-    github: {
-      pulls: {
-        createReviewRequest: requestReviewersStub
-      },
-      repos: {
-        checkCollaborator: userExistsStub,
-        getContents: getFileContentsStub
-      }
-    },
-    issue() {
-      return {
-        ...this.repo(),
-        number: 1234
-      };
-    },
-    repo() {
-      return {
-        owner: 'org',
-        repo: 'repo'
-      };
-    },
-    payload: {
-      repository: {
-        full_name: 'org/repo'
-      },
-      pull_request: {
-        number: 1234,
-        user: {
-          login: 'jdoe'
-        }
-      }
-    }
-  };
-
   it('does not process edits', function () {
     assume(reviewersPlugin.processesEdits).is.false();
+  });
+
+  it('processes "ready for review" actions', function () {
+    assume(reviewersPlugin.processesReadyForReview).is.true();
   });
 
   describe('.processRequest', function () {
@@ -77,36 +90,78 @@ describe('ReviewersPlugin', function () {
       assume(reviewersPlugin.processRequest).has.length(3);
     });
 
+    it('bails out if PR is a draft and requestForDrafts is false', async function () {
+      const draftContext = clone(mockContext);
+      draftContext.payload.pull_request.draft = true;
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews');
+      await reviewersPlugin.processRequest(draftContext, commenter, null);
+      assume(requestReviewsStub.called).is.false();
+    });
+
+    it('requests reviews if PR is a draft and requestForDrafts is true', async function () {
+      const draftContext = clone(mockContext);
+      draftContext.payload.pull_request.draft = true;
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
+      await reviewersPlugin.processRequest(draftContext, commenter, {
+        requestForDrafts: true,
+        reviewers: ['foo'],
+        howMany: 1
+      });
+      assume(requestReviewsStub.called).is.true();
+    });
+
+    it('requests reviews if PR is marked ready for review and requestForDrafts is false', async function () {
+      const draftContext = clone(mockContext);
+      draftContext.payload.action = 'ready_for_review';
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
+      await reviewersPlugin.processRequest(draftContext, commenter, {
+        requestForDrafts: false,
+        reviewers: ['foo'],
+        howMany: 1
+      });
+      assume(requestReviewsStub.called).is.true();
+    });
+
+    it('bails out if PR is marked ready for review and requestForDrafts is true', async function () {
+      // Since reviews would have already been requested when draft was opened
+      const draftContext = clone(mockContext);
+      draftContext.payload.action = 'ready_for_review';
+
+      const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
+      await reviewersPlugin.processRequest(draftContext, commenter, {
+        requestForDrafts: true,
+        reviewers: ['foo'],
+        howMany: 1
+      });
+      assume(requestReviewsStub.called).is.false();
+    });
+
     it('bails out if getPackageJson returns an error', async function () {
       const mockError = new Error('mock error');
-      const getPackageJsonStub = sandbox.stub(reviewersPlugin, 'getPackageJson').rejects(mockError);
+      sandbox.stub(reviewersPlugin, 'getPackageJson').rejects(mockError);
       try {
         // @ts-ignore
         await reviewersPlugin.processRequest(mockContext, commenter, null);
       } catch (err) {
         assume(err).equals(mockError);
-      } finally {
-        getPackageJsonStub.restore();
       }
     });
 
     it('bails out if no package.json is found', async function () {
-      const getPackageJsonStub = sandbox.stub(reviewersPlugin, 'getPackageJson').resolves();
+      sandbox.stub(reviewersPlugin, 'getPackageJson').resolves();
       // eslint-disable-next-line id-length
       const getAllPossibleReviewersSpy = sandbox.spy(reviewersPlugin, 'getAllPossibleReviewers');
-      try {
-        // @ts-ignore
-        await reviewersPlugin.processRequest(mockContext, commenter, null);
-        assume(getAllPossibleReviewersSpy.called).is.false();
-      } finally {
-        getPackageJsonStub.restore();
-        getAllPossibleReviewersSpy.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.processRequest(mockContext, commenter, null);
+      assume(getAllPossibleReviewersSpy.called).is.false();
     });
 
     it('properly passes package.json info to getAllPossibleReviewers and requestReviews', async () =>  {
       const mockPackageInfo = {};
-      const getPackageJsonStub = sandbox.stub(reviewersPlugin, 'getPackageJson')
+      sandbox.stub(reviewersPlugin, 'getPackageJson')
         .resolves(mockPackageInfo);
       const mockReviewers = ['one', 'two'];
       // eslint-disable-next-line id-length
@@ -114,43 +169,32 @@ describe('ReviewersPlugin', function () {
         .returns(mockReviewers);
       const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
 
-      try {
-        // @ts-ignore
-        await reviewersPlugin.processRequest(mockContext, commenter, null);
-        assume(getAllPossibleReviewersStub.calledWithMatch(
-          sinon.match.same(mockPackageInfo)
-        )).is.true();
-        // @ts-ignore
-        assume(requestReviewsStub.calledWithMatch(
-          sinon.match.any,
-          sinon.match.array.deepEquals(mockReviewers)
-        )).is.true();
-      } finally {
-        getPackageJsonStub.restore();
-        getAllPossibleReviewersStub.restore();
-        requestReviewsStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.processRequest(mockContext, commenter, null);
+      assume(getAllPossibleReviewersStub.calledWithMatch(
+        sinon.match.same(mockPackageInfo)
+      )).is.true();
+      // @ts-ignore
+      assume(requestReviewsStub.calledWithMatch(
+        sinon.match.any,
+        sinon.match.array.deepEquals(mockReviewers)
+      )).is.true();
     });
 
     it('skips loading candidate reviewers from package.json when reviewers are specified in config', async function () {
       const getPackageJsonStub = sandbox.stub(reviewersPlugin, 'getPackageJson');
       const mockReviewers = ['one', 'two'];
       const requestReviewsStub = sandbox.stub(reviewersPlugin, 'requestReviews').resolves();
-      try {
-        // @ts-ignore
-        await reviewersPlugin.processRequest(mockContext, commenter, {
-          reviewers: mockReviewers
-        });
-        assume(getPackageJsonStub.called).is.false();
-        // @ts-ignore
-        assume(requestReviewsStub.calledWithMatch(
-          sinon.match.any,
-          sinon.match.array.deepEquals(mockReviewers)
-        )).is.true();
-      } finally {
-        getPackageJsonStub.restore();
-        requestReviewsStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.processRequest(mockContext, commenter, {
+        reviewers: mockReviewers
+      });
+      assume(getPackageJsonStub.called).is.false();
+      // @ts-ignore
+      assume(requestReviewsStub.calledWithMatch(
+        sinon.match.any,
+        sinon.match.array.deepEquals(mockReviewers)
+      )).is.true();
     });
   });
 
@@ -231,13 +275,9 @@ describe('ReviewersPlugin', function () {
   describe('.requestReviews', function () {
     it('bails out if no reviewers are specified', async function () {
       const getUsersFromReviewersListStub = sandbox.stub(reviewersPlugin, 'getUsersFromReviewersList');
-      try {
-        // @ts-ignore
-        await reviewersPlugin.requestReviews({}, null, null, null, commenter);
-        assume(getUsersFromReviewersListStub.called).is.false();
-      } finally {
-        getUsersFromReviewersListStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.requestReviews({}, null, null, null, commenter);
+      assume(getUsersFromReviewersListStub.called).is.false();
     });
 
     it('bails out if getUsersFromReviewersList returns an error', async function () {
@@ -250,22 +290,16 @@ describe('ReviewersPlugin', function () {
         assume(getUsersFromReviewersListStub.called).is.true();
         assume(err).is.truthy();
         assume(err.message).equals('getUsersFromReviewersListError');
-      } finally {
-        getUsersFromReviewersListStub.restore();
       }
     });
 
     it('bails out if no users are found to request review from', async function () {
       const getUsersFromReviewersListStub = sandbox.stub(reviewersPlugin, 'getUsersFromReviewersList')
         .resolves([]);
-      try {
-        // @ts-ignore
-        await reviewersPlugin.requestReviews({}, ['one'], null, null, commenter);
-        assume(getUsersFromReviewersListStub.called).is.true();
-        assume(requestReviewersStub.called).is.false();
-      } finally {
-        getUsersFromReviewersListStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.requestReviews({}, ['one'], null, null, commenter);
+      assume(getUsersFromReviewersListStub.called).is.true();
+      assume(requestReviewersStub.called).is.false();
     });
 
     it('extracts a subset of candidate reviewers based on howMany parameter', async function () {
@@ -277,21 +311,17 @@ describe('ReviewersPlugin', function () {
       const getUsersFromReviewersListStub = sandbox.stub(reviewersPlugin, 'getUsersFromReviewersList')
         .resolves(candidateReviewers);
       const howManyRequested = 2;
-      try {
-        // @ts-ignore
-        await reviewersPlugin.requestReviews(mockContext, candidateReviewers, howManyRequested, null, commenter);
-        assume(getUsersFromReviewersListStub.called).is.true();
-        assume(requestReviewersStub.calledWithMatch({
-          reviewers: sinon.match(value => { // eslint-disable-line max-nested-callbacks
-            return value && Array.isArray(value) && value.length === howManyRequested &&
-              value.every(r => { // eslint-disable-line max-nested-callbacks
-                return candidateReviewers.includes(r);
-              });
-          })
-        })).is.true();
-      } finally {
-        getUsersFromReviewersListStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.requestReviews(mockContext, candidateReviewers, howManyRequested, null, commenter);
+      assume(getUsersFromReviewersListStub.called).is.true();
+      assume(requestReviewersStub.calledWithMatch({
+        reviewers: sinon.match(value => { // eslint-disable-line max-nested-callbacks
+          return value && Array.isArray(value) && value.length === howManyRequested &&
+            value.every(r => { // eslint-disable-line max-nested-callbacks
+              return candidateReviewers.includes(r);
+            });
+        })
+      })).is.true();
     });
 
     it('requests review from all candidate reviewers if howMany > numCandidates', async function () {
@@ -303,18 +333,14 @@ describe('ReviewersPlugin', function () {
       const getUsersFromReviewersListStub = sandbox.stub(reviewersPlugin, 'getUsersFromReviewersList')
         .resolves(candidateReviewers);
       const howManyRequested = 4;
-      try {
-        // @ts-ignore
-        await reviewersPlugin.requestReviews(mockContext, candidateReviewers, howManyRequested, null, commenter);
-        assume(getUsersFromReviewersListStub.called).is.true();
-        assume(requestReviewersStub.calledWithMatch({
-          reviewers: sinon.match.array.contains(candidateReviewers).and(sinon.match(value => {
-            return value.length === candidateReviewers.length;
-          }))
-        })).is.true();
-      } finally {
-        getUsersFromReviewersListStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.requestReviews(mockContext, candidateReviewers, howManyRequested, null, commenter);
+      assume(getUsersFromReviewersListStub.called).is.true();
+      assume(requestReviewersStub.calledWithMatch({
+        reviewers: sinon.match.array.contains(candidateReviewers).and(sinon.match(value => {
+          return value.length === candidateReviewers.length;
+        }))
+      })).is.true();
     });
 
     it('adds a comment listing requested reviewers when configured', async function () {
@@ -325,14 +351,10 @@ describe('ReviewersPlugin', function () {
       ];
       const getUsersFromReviewersListStub = sandbox.stub(reviewersPlugin, 'getUsersFromReviewersList')
         .resolves(candidateReviewers);
-      try {
-        // @ts-ignore
-        await reviewersPlugin.requestReviews(mockContext, candidateReviewers, null, 'Some comment %s', commenter);
-        assume(getUsersFromReviewersListStub.called).is.true();
-        assume(addCommentStub.calledWithMatch('@one, @three, @two', Commenter.priority.Medium)).is.true();
-      } finally {
-        getUsersFromReviewersListStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.requestReviews(mockContext, candidateReviewers, null, 'Some comment %s', commenter);
+      assume(getUsersFromReviewersListStub.called).is.true();
+      assume(addCommentStub.calledWithMatch('@one, @three, @two', Commenter.priority.Medium)).is.true();
     });
 
     it('requests review from all candidate reviewers if howMany is not specified', async function () {
@@ -343,18 +365,14 @@ describe('ReviewersPlugin', function () {
       ];
       const getUsersFromReviewersListStub = sandbox.stub(reviewersPlugin, 'getUsersFromReviewersList')
         .resolves(candidateReviewers);
-      try {
-        // @ts-ignore
-        await reviewersPlugin.requestReviews(mockContext, candidateReviewers, null, null, commenter);
-        assume(getUsersFromReviewersListStub.called).is.true();
-        assume(requestReviewersStub.calledWithMatch({
-          reviewers: sinon.match.array.contains(candidateReviewers).and(sinon.match(value => {
-            return value.length === candidateReviewers.length;
-          }))
-        })).is.true();
-      } finally {
-        getUsersFromReviewersListStub.restore();
-      }
+      // @ts-ignore
+      await reviewersPlugin.requestReviews(mockContext, candidateReviewers, null, null, commenter);
+      assume(getUsersFromReviewersListStub.called).is.true();
+      assume(requestReviewersStub.calledWithMatch({
+        reviewers: sinon.match.array.contains(candidateReviewers).and(sinon.match(value => {
+          return value.length === candidateReviewers.length;
+        }))
+      })).is.true();
     });
   });
 
