@@ -19,6 +19,7 @@ function appFn(app) {
 
   app.on('pull_request.opened', processPR);
   app.on('pull_request.edited', processPR);
+  app.on('pull_request.ready_for_review', processPR);
 }
 
 appFn.setupDocsRoutes = setupDocsRoutes;
