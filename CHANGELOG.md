@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 3.0.0-beta
+
 - **BREAKING:** Suppress review requests for draft PRs unless `requestForDrafts` is set to `true` in reviewers plugin
   config.
 
