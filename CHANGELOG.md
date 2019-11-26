@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.0.0
+
+- **BREAKING:** Suppress review requests for draft PRs unless `requestForDrafts` is set to `true` in reviewers plugin
+  config.
+
 ## 3.0.0-beta2
 
 - [fix] Listen for `ready_for_review` events
