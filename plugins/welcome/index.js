@@ -35,11 +35,11 @@ class WelcomePlugin extends BasePlugin {
       creator: context.payload.pull_request.user.login
     }));
 
-    // get the total PRs by the contributor
-    const total = response.data.filter(data => data.pull_request);
+    // get all the PRs by the contributor
+    const pullRequests = response.data.filter(data => data.pull_request);
 
     // if we only have one, then lets welcome them
-    if (total.length === 1) {
+    if (pullRequests.length === 1) {
       commenter.addComment(message, Commenter.priority.Low);
     }
   }
