@@ -27,7 +27,7 @@ class WelcomePlugin extends BasePlugin {
    * @param {Commenter} commenter Commenter
    */
   async processRequest(context, commenter) {
-    const message = process.env.WELCOME_MESSAGE || 'Thanks for making contributing to the project!';
+    const message = process.env.WELCOME_MESSAGE || 'Thanks for making a contribution to the project!';
 
     // Get all issues for repo with user as creator
     const response = await context.github.issues.listForRepo(context.repo({

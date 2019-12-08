@@ -77,7 +77,7 @@ describe('WelcomePlugin', function () {
       await welcomePlugin.processRequest(mockContext, commenter);
 
       assume(addCommentStub.called).is.true();
-      assume(addCommentStub.getCall(0).args).eql(['Thanks for making contributing to the project!', 0]);
+      assume(addCommentStub.getCall(0).args).eql(['Thanks for making a contribution to the project!', 0]);
     });
 
     it('will add a custom welcome comment if the user is new to the repo', async function () {
