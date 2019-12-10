@@ -3,13 +3,14 @@ const Commenter = require('../../commenter');
 
 class WelcomePlugin extends BasePlugin {
   /**
-   * Whether this plugin processes edit actions
+   * Welcome plugin - automatically welcomes new contributors
+   *
+   * @constructor
    * @public
-   * @override
-   * @returns {Boolean} Whether this plugin processes edit actions
    */
-  get processesEdits() {
-    return false;
+  constructor() {
+    super();
+    this.welcomeMessage = process.env.WELCOME_MESSAGE;
   }
 
   /**
@@ -26,8 +27,10 @@ class WelcomePlugin extends BasePlugin {
    * @param {ProbotContext} context webhook context
    * @param {Commenter} commenter Commenter
    */
-  async processRequest(context, commenter) {
-    const message = process.env.WELCOME_MESSAGE || 'Thanks for making a contribution to the project!';
+  async processRequest(context, commenter, config = {}) {
+    const message = config.welcomeMessage || this.welcomeMessage;
+
+    if (!message) return;
 
     // Get all issues for repo with user as creator
     const response = await context.github.issues.listForRepo(context.repo({
