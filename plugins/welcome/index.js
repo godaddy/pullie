@@ -26,6 +26,7 @@ class WelcomePlugin extends BasePlugin {
    * @override
    * @param {ProbotContext} context webhook context
    * @param {Commenter} commenter Commenter
+   * @param {Object} config Configuration for this plugin
    */
   async processRequest(context, commenter, config = {}) {
     const message = config.welcomeMessage || this.welcomeMessage;
