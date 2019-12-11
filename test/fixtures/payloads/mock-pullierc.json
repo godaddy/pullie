@@ -1,6 +1,11 @@
 {
   "plugins": [
-    "reviewers",
+    {
+      "plugin": "reviewers",
+      "config": {
+        "commentFormat": "Requested review from %s"
+      }
+    },
     {
       "plugin": "requiredFile",
       "config": {
@@ -10,6 +15,12 @@
             "message": "Missing CHANGELOG entry"
           }
         ]
+      }
+    },
+    {
+      "plugin": "welcome",
+      "config": {
+        "welcomeMessage": "o hai!"
       }
     }
   ]
