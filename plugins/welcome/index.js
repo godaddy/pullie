@@ -44,7 +44,7 @@ class WelcomePlugin extends BasePlugin {
 
     // if we only have one, then lets welcome them
     if (pullRequests.length === 1) {
-      commenter.addComment(message, Commenter.priority.Low);
+      commenter.addComment(message, Commenter.priority.High);
     }
   }
 
