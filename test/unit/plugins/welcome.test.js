@@ -2,6 +2,7 @@ const assume = require('assume');
 const sinon = require('sinon');
 
 const WelcomePlugin = require('../../../plugins/welcome');
+const Commenter = require('../../../commenter');
 
 const sandbox = sinon.createSandbox();
 const addCommentStub = sandbox.stub();
@@ -87,14 +88,14 @@ describe('WelcomePlugin', function () {
       await instance.processRequest(mockContext, commenter);
 
       assume(addCommentStub.called).is.true();
-      assume(addCommentStub.getCall(0).args).eql(['Thanks for making a contribution to the project!', 0]);
+      assume(addCommentStub.getCall(0).args).eql(['Thanks for making a contribution to the project!', Commenter.priority.High]);
     });
 
     it('will add the welcome comment from custom config if the user is new to the repo', async function () {
       await welcomePlugin.processRequest(mockContext, commenter, { welcomeMessage: 'Welcome to the project!' });
 
       assume(addCommentStub.called).is.true();
-      assume(addCommentStub.getCall(0).args).eql(['Welcome to the project!', 0]);
+      assume(addCommentStub.getCall(0).args).eql(['Welcome to the project!', Commenter.priority.High]);
     });
 
     it('will do nothing if the user is already part of the repo', async function () {
