@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.1.0
+
+- [feat] Add `welcome` plugin
+
 ## 3.0.0
 
 - **BREAKING:** Suppress review requests for draft PRs unless `requestForDrafts` is set to `true` in reviewers plugin
