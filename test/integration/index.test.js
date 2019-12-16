@@ -19,6 +19,20 @@ function nockFile(scope, urlPath, contents, repo = 'repo') {
     });
 }
 
+function verifyComment({ body }) {
+  try {
+    assume(body).contains('Mock ticket 1 title');
+    assume(body).contains('Requested review from @jsmith');
+    assume(body).contains('o hai!');
+  } catch (failedAssumption) {
+    // eslint-disable-next-line no-console
+    console.error(failedAssumption.toString());
+    return false;
+  }
+
+  return true;
+}
+
 describe('Pullie (integration)', function () {
   /** @type {Probot} */
   let pullie;
@@ -49,7 +63,13 @@ describe('Pullie (integration)', function () {
       ])
       .post('/api/v3/repos/org/repo/pulls/165/requested_reviewers')
       .reply(200)
-      .post('/api/v3/repos/org/repo/issues/165/comments')
+      .get('/api/v3/repos/org/repo/issues?state=all&creator=JDoe')
+      .reply(200, [
+        {
+          pull_request: {}
+        }
+      ])
+      .post('/api/v3/repos/org/repo/issues/165/comments', verifyComment)
       .reply(200);
 
     nockFile(github, '.pullierc', JSON.stringify(mockOrgPullieRC), '.github');
