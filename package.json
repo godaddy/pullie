@@ -51,7 +51,7 @@
     "coveralls": "^3.0.7",
     "eslint": "^6.6.0",
     "eslint-config-godaddy": "^4.0.0",
-    "eslint-plugin-json": "^1.4.0",
+    "eslint-plugin-json": "^2.0.0",
     "eslint-plugin-mocha": "^5.3.0",
     "mocha": "^6.2.2",
     "nock": "^11.7.0",
