@@ -40,7 +40,7 @@
     "handlebars": "^4.7.3",
     "p-reduce": "^2.1.0",
     "prismjs": "^1.19.0",
-    "probot": "^9.10.0",
+    "probot": "^9.10.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8",
     "resolve-cwd": "^3.0.0"
