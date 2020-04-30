@@ -29,9 +29,9 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     if (!isNaN(ghecEnterpriseId) &&
       context.payload.enterprise &&
       context.payload.enterprise.id === ghecEnterpriseId) {
-      context.log.info('PR is from approved Enterprise');
+      context.log.info('PR is from the configured Enterprise');
     } else {
-      context.log.info('PR is not from an approved Enterprise, nothing to do');
+      context.log.info('PR is not from the configured Enterprise, nothing to do');
       return;
     }
   }

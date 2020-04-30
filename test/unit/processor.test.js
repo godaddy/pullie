@@ -134,27 +134,27 @@ describe('Processor', () => {
   it('bails when PR is not from an Enterprise when one is required', async function () {
     process.env.GH_ENTERPRISE_ID = '123';
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('PR is not from an approved Enterprise, nothing to do')).is.true();
+    assume(infoLogStub.calledWith('PR is not from the configured Enterprise, nothing to do')).is.true();
     assume(getContentsStub.called).is.false();
   });
 
-  it('bails when PR is not from an approved Enterprise', async function () {
+  it('bails when PR is not from the configured Enterprise', async function () {
     process.env.GH_ENTERPRISE_ID = '123';
     mockContext.payload.enterprise = {
       id: 456
     };
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('PR is not from an approved Enterprise, nothing to do')).is.true();
+    assume(infoLogStub.calledWith('PR is not from the configured Enterprise, nothing to do')).is.true();
     assume(getContentsStub.called).is.false();
   });
 
-  it('does not bail when PR is from an approved Enterprise', async function () {
+  it('does not bail when PR is from the configured Enterprise', async function () {
     process.env.GH_ENTERPRISE_ID = '123';
     mockContext.payload.enterprise = {
       id: 123
     };
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('PR is from approved Enterprise')).is.true();
+    assume(infoLogStub.calledWith('PR is from the configured Enterprise')).is.true();
     assume(getContentsStub.called).is.true();
   });
 
