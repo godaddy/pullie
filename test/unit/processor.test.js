@@ -78,6 +78,7 @@ describe('Processor', () => {
       number: 123,
       repository: {
         full_name: 'org/repo',
+        private: false,
         owner: {
           login: 'org'
         }
@@ -117,6 +118,8 @@ describe('Processor', () => {
     processRequestStub2.resolves();
     processRequestStub3.resolves();
     MOCK_COMMENT = 'MOCK COMMENT';
+    delete process.env.GH_ENTERPRISE_ID;
+    delete process.env.NO_PUBLIC_REPOS;
   });
 
   afterEach(function () {
@@ -126,6 +129,40 @@ describe('Processor', () => {
   it('is an async function', function () {
     assume(processPR).is.an('asyncfunction');
     assume(processPR).has.length(1);
+  });
+
+  it('bails when PR is not from an Enterprise when one is required', async function () {
+    process.env.GH_ENTERPRISE_ID = '123';
+    await processPR(mockContext);
+    assume(infoLogStub.calledWith('PR is not from an approved Enterprise, nothing to do')).is.true();
+    assume(getContentsStub.called).is.false();
+  });
+
+  it('bails when PR is not from an approved Enterprise', async function () {
+    process.env.GH_ENTERPRISE_ID = '123';
+    mockContext.payload.enterprise = {
+      id: 456
+    };
+    await processPR(mockContext);
+    assume(infoLogStub.calledWith('PR is not from an approved Enterprise, nothing to do')).is.true();
+    assume(getContentsStub.called).is.false();
+  });
+
+  it('does not bail when PR is from an approved Enterprise', async function () {
+    process.env.GH_ENTERPRISE_ID = '123';
+    mockContext.payload.enterprise = {
+      id: 123
+    };
+    await processPR(mockContext);
+    assume(infoLogStub.calledWith('PR is from approved Enterprise')).is.true();
+    assume(getContentsStub.called).is.true();
+  });
+
+  it('bails when PR is from a public repo and NO_PUBLIC_REPOS is enabled', async function () {
+    process.env.NO_PUBLIC_REPOS = 'true';
+    await processPR(mockContext);
+    assume(infoLogStub.calledWith('Pullie has been disabled on public repos, nothing to do')).is.true();
+    assume(getContentsStub.called).is.false();
   });
 
   it('bails when getRepoConfig rejects', async function () {
