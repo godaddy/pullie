@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 3.2.0
+
 - [feat] Add support for limiting Pullie to a single approved GitHub Enterprise Cloud Enterprise
 - [feat] Add support for limiting Pullie to only run on non-public repositories
 
