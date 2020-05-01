@@ -24,6 +24,23 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
   };
   context.log.info('Processing PR', logData);
 
+  if (process.env.GH_ENTERPRISE_ID) {
+    const ghecEnterpriseId = parseInt(process.env.GH_ENTERPRISE_ID, 10);
+    if (!isNaN(ghecEnterpriseId) &&
+      context.payload.enterprise &&
+      context.payload.enterprise.id === ghecEnterpriseId) {
+      context.log.info('PR is from the configured Enterprise');
+    } else {
+      context.log.info('PR is not from the configured Enterprise, nothing to do');
+      return;
+    }
+  }
+
+  if (process.env.NO_PUBLIC_REPOS === 'true' && !context.payload.repository.private) {
+    context.log.info('Pullie has been disabled on public repos, nothing to do');
+    return;
+  }
+
   let repoConfig;
   try {
     repoConfig = await getRepoConfig(context);
