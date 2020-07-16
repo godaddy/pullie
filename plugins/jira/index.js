@@ -1,4 +1,5 @@
-const request = require('request-promise-native');
+/** @type {(url: string, options?: RequestInit) => Promise<Response>} */
+const fetch = require('node-fetch');
 const BasePlugin = require('../base');
 const Commenter = require('../../commenter');
 
@@ -84,30 +85,31 @@ class JiraPlugin extends BasePlugin {
   async findTicketsAndPost(commenter, ticketIds) {
     const jql = `id in ('${ticketIds.join("', '")}')`;
 
-    const res = await request.post(`${this.jiraConfig.protocol}://${this.jiraConfig.host}/rest/api/2/search`, {
-      json: true,
-      resolveWithFullResponse: true,
+    const res = await fetch(`${this.jiraConfig.protocol}://${this.jiraConfig.host}/rest/api/2/search`, {
+      method: 'POST',
       headers: {
-        Accept: 'application/json'
+        'Accept': 'application/json',
+        'Authorization': 'Basic ' + Buffer.from(this.jiraConfig.username + ':' + this.jiraConfig.password)
+          .toString('base64'),
+        'Content-Type': 'application/json'
       },
-      auth: {
-        username: this.jiraConfig.username,
-        password: this.jiraConfig.password
-      },
-      body: {
+      body: JSON.stringify({
         jql,
         startAt: 0,
         fields: ['summary']
-      }
+      })
     });
 
-    if (!res || res.statusCode < 200 || res.statusCode > 299)
+    if (!res || res.status < 200 || res.status > 299) {
       throw new Error(
-        `Error retrieving Jira ticket info. Status code: ${(res && res.statusCode) || 'unknown'} from Jira.`);
+        `Error retrieving Jira ticket info. Status code: ${(res && res.status) || 'unknown'} from Jira.`);
+    }
 
-    if (!res.body.issues.length) return;
+    const body = await res.json();
 
-    const ticketList = res.body.issues.reduce((acc, ticket) => {
+    if (!body.issues.length) return;
+
+    const ticketList = body.issues.reduce((acc, ticket) => {
       return acc +
         // eslint-disable-next-line max-len
         `\n- [\\[${ticket.key}\\] ${ticket.fields.summary}](${this.jiraConfig.protocol}://${this.jiraConfig.host}/browse/${ticket.key})`;

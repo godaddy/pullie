@@ -1,14 +1,18 @@
 const assume = require('assume');
+const proxyquire = require('proxyquire');
 const sinon = require('sinon');
-const request = require('request-promise-native');
-
-const JiraPlugin = require('../../../plugins/jira');
+const { json } = require('express');
 
 const sandbox = sinon.createSandbox();
 const addCommentStub = sandbox.stub();
 const commenter = {
   addComment: addCommentStub
 };
+const fetchStub = sandbox.stub();
+
+const JiraPlugin =  proxyquire('../../../plugins/jira', {
+  'node-fetch': fetchStub
+});
 
 const jiraPlugin = new JiraPlugin();
 
@@ -28,9 +32,8 @@ describe('JiraPlugin', function () {
   });
 
   describe('.processRequest', function () {
-    const requestPostStub = sandbox.stub(request, 'post').resolves();
     beforeEach(function () {
-      requestPostStub.resetHistory();
+      fetchStub.resetHistory();
       addCommentStub.resetHistory();
     });
 
@@ -55,7 +58,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.called).is.false();
+      assume(fetchStub.called).is.false();
     });
 
     it(`bails out if the PR action is an edit and the title isn't listed as changed`, async function () {
@@ -74,7 +77,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.called).is.false();
+      assume(fetchStub.called).is.false();
     });
 
     it('bails out if there are no ticket IDs in the PR title', async function () {
@@ -88,12 +91,12 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.called).is.false();
+      assume(fetchStub.called).is.false();
     });
 
     it('bails out on error from the Jira request', async function () {
       const mockError = new Error('mock error');
-      requestPostStub.rejects(mockError);
+      fetchStub.rejects(mockError);
       try {
         await jiraPlugin.processRequest({
           payload: {
@@ -107,12 +110,12 @@ describe('JiraPlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(err).equals(mockError);
-        assume(requestPostStub.called).is.true();
+        assume(fetchStub.called).is.true();
       }
     });
 
     it('bails out on invalid HTTP response from Jira', async function () {
-      requestPostStub.resolves();
+      fetchStub.resolves();
       try {
         await jiraPlugin.processRequest({
           payload: {
@@ -126,13 +129,13 @@ describe('JiraPlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: unknown');
-        assume(requestPostStub.called).is.true();
+        assume(fetchStub.called).is.true();
       }
     });
 
     it('bails out on invalid HTTP status code from Jira', async function () {
-      requestPostStub.resolves({
-        statusCode: 404
+      fetchStub.resolves({
+        status: 404
       });
       try {
         await jiraPlugin.processRequest({
@@ -147,22 +150,24 @@ describe('JiraPlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: 404');
-        assume(requestPostStub.called).is.true();
+        assume(fetchStub.called).is.true();
       }
     });
 
     it('correctly parses 1 ticket from a PR and builds a comment with its title', async function () {
-      requestPostStub.resolves({
-        statusCode: 200,
-        body: {
-          issues: [
-            {
-              key: 'AB-1234',
-              fields: {
-                summary: 'Mock ticket title'
+      fetchStub.resolves({
+        status: 200,
+        async json() {
+          return {
+            issues: [
+              {
+                key: 'AB-1234',
+                fields: {
+                  summary: 'Mock ticket title'
+                }
               }
-            }
-          ]
+            ]
+          };
         }
       });
       await jiraPlugin.processRequest({
@@ -176,33 +181,38 @@ describe('JiraPlugin', function () {
       }, commenter);
 
       // @ts-ignore
-      assume(requestPostStub.calledWithMatch(
+      assume(fetchStub.calledWithMatch(
         // @ts-ignore
         sinon.match.string,
-        sinon.match.hasNested('body.jql', sinon.match('AB-1234').and(sinon.match((value) => {
-          return !~value.indexOf(',');
-        }))))).is.true();
+        sinon.match({
+          body: sinon.match(strBody => {
+            const body = JSON.parse(strBody);
+            return body.jql && body.jql.includes('AB-1234') && !body.jql.includes(',');
+          })
+        }))).is.true();
       assume(addCommentStub.calledWithMatch('\\[AB-1234\\] Mock ticket title')).is.true();
     });
 
     it('correctly parses 2 tickets from a PR and builds a comment with its title', async function () {
-      requestPostStub.resolves({
-        statusCode: 200,
-        body: {
-          issues: [
-            {
-              key: 'AB-1234',
-              fields: {
-                summary: 'Mock ticket 1 title'
+      fetchStub.resolves({
+        status: 200,
+        async json() {
+          return {
+            issues: [
+              {
+                key: 'AB-1234',
+                fields: {
+                  summary: 'Mock ticket 1 title'
+                }
+              },
+              {
+                key: 'FOO-5678',
+                fields: {
+                  summary: 'Mock ticket 2 title'
+                }
               }
-            },
-            {
-              key: 'FOO-5678',
-              fields: {
-                summary: 'Mock ticket 2 title'
-              }
-            }
-          ]
+            ]
+          };
         }
       });
       await jiraPlugin.processRequest({
@@ -215,34 +225,39 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.calledWithMatch(
+      assume(fetchStub.calledWithMatch(
         // @ts-ignore
         sinon.match.string,
-        sinon.match.hasNested('body.jql', sinon.match('AB-1234')
-          .and(sinon.match('FOO-5678'))
-          .and(sinon.match(','))))).is.true();
+        sinon.match({
+          body: sinon.match(strBody => {
+            const body = JSON.parse(strBody);
+            return body.jql && body.jql.includes('AB-1234') && body.jql.includes('FOO-5678') && body.jql.includes(',');
+          })
+        }))).is.true();
       assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
         .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
     });
 
     it('correctly parses 2 tickets without brackets from a PR and builds a comment with its title', async function () {
-      requestPostStub.resolves({
-        statusCode: 200,
-        body: {
-          issues: [
-            {
-              key: 'AB-1234',
-              fields: {
-                summary: 'Mock ticket 1 title'
+      fetchStub.resolves({
+        status: 200,
+        async json() {
+          return {
+            issues: [
+              {
+                key: 'AB-1234',
+                fields: {
+                  summary: 'Mock ticket 1 title'
+                }
+              },
+              {
+                key: 'FOO-5678',
+                fields: {
+                  summary: 'Mock ticket 2 title'
+                }
               }
-            },
-            {
-              key: 'FOO-5678',
-              fields: {
-                summary: 'Mock ticket 2 title'
-              }
-            }
-          ]
+            ]
+          };
         }
       });
       await jiraPlugin.processRequest({
@@ -255,12 +270,15 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.calledWithMatch(
+      assume(fetchStub.calledWithMatch(
         // @ts-ignore
         sinon.match.string,
-        sinon.match.hasNested('body.jql', sinon.match('AB-1234')
-          .and(sinon.match('FOO-5678'))
-          .and(sinon.match(','))))).is.true();
+        sinon.match({
+          body: sinon.match(strBody => {
+            const body = JSON.parse(strBody);
+            return body.jql && body.jql.includes('AB-1234') && body.jql.includes('FOO-5678') && body.jql.includes(',');
+          })
+        }))).is.true();
       assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
         .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
     });
@@ -285,23 +303,25 @@ describe('JiraPlugin', function () {
     });
 
     it('correctly parses 2 tickets from a PR edit and builds a comment with its title', async function () {
-      requestPostStub.resolves({
-        statusCode: 200,
-        body: {
-          issues: [
-            {
-              key: 'AB-1234',
-              fields: {
-                summary: 'Mock ticket 1 title'
+      fetchStub.resolves({
+        status: 200,
+        async json() {
+          return {
+            issues: [
+              {
+                key: 'AB-1234',
+                fields: {
+                  summary: 'Mock ticket 1 title'
+                }
+              },
+              {
+                key: 'FOO-5678',
+                fields: {
+                  summary: 'Mock ticket 2 title'
+                }
               }
-            },
-            {
-              key: 'FOO-5678',
-              fields: {
-                summary: 'Mock ticket 2 title'
-              }
-            }
-          ]
+            ]
+          };
         }
       });
       await jiraPlugin.processRequest({
@@ -319,21 +339,26 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.calledWithMatch(
+      assume(fetchStub.calledWithMatch(
         // @ts-ignore
         sinon.match.string,
-        sinon.match.hasNested('body.jql', sinon.match('AB-1234')
-          .and(sinon.match('FOO-5678'))
-          .and(sinon.match(','))))).is.true();
+        sinon.match({
+          body: sinon.match(strBody => {
+            const body = JSON.parse(strBody);
+            return body.jql && body.jql.includes('AB-1234') && body.jql.includes('FOO-5678') && body.jql.includes(',');
+          })
+        }))).is.true();
       assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
         .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
     });
 
     it('does not post when no Jira tickets are actually found in Jira query', async function () {
-      requestPostStub.resolves({
-        statusCode: 200,
-        body: {
-          issues: []
+      fetchStub.resolves({
+        status: 200,
+        async json() {
+          return {
+            issues: []
+          };
         }
       });
       await jiraPlugin.processRequest({
@@ -346,12 +371,15 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(requestPostStub.calledWithMatch(
+      assume(fetchStub.calledWithMatch(
         // @ts-ignore
         sinon.match.string,
-        sinon.match.hasNested('body.jql', sinon.match('AB-1234')
-          .and(sinon.match('AB-3456'))
-          .and(sinon.match(','))))).is.true();
+        sinon.match({
+          body: sinon.match(strBody => {
+            const body = JSON.parse(strBody);
+            return body.jql && body.jql.includes('AB-1234') && body.jql.includes('AB-3456') && body.jql.includes(',');
+          })
+        }))).is.true();
       assume(addCommentStub.called).is.false();
     });
   });

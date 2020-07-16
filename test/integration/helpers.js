@@ -1,15 +1,13 @@
 const assume = require('assume');
-const request = require('request');
+/** @type {(url: string, options?: RequestInit) => Promise<Response>} */
+const fetch = require('node-fetch');
 
 const helpers = {
-  assumeValidResponse: function assumeValidResponse(url, expectedBody, done) {
-    request(url, (err, res, body) => {
-      assume(err).is.falsey();
-      assume(res).hasOwn('statusCode', 200);
-      assume(body).contains(expectedBody);
-
-      done();
-    });
+  assumeValidResponse: async function assumeValidResponse(url, expectedBody) {
+    const res = await fetch(url);
+    assume(res.status).equals(200);
+    const body = await res.text();
+    assume(body).includes(expectedBody);
   }
 };
 

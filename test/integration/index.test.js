@@ -2,7 +2,8 @@ const assume = require('assume');
 const fs = require('fs');
 const nock = require('nock');
 const path = require('path');
-const request = require('request');
+/** @type {(url: string, options?: RequestInit) => Promise<Response>} */
+const fetch = require('node-fetch');
 const pullieApp = require('../../');
 const { Probot } = require('probot');
 const { assumeValidResponse } = require('./helpers');
@@ -144,20 +145,20 @@ describe('Pullie (integration)', function () {
       pullie.httpServer.close(done);
     });
 
-    it('serves documentation at host root', function (done) {
-      assumeValidResponse(baseUrl, '<!DOCTYPE html>', done);
+    it('serves documentation at host root', async function () {
+      await assumeValidResponse(baseUrl, '<!DOCTYPE html>');
     });
 
-    it('serves Prism CSS properly', function (done) {
-      assumeValidResponse(baseUrl + '/prism-coy.css', 'prism', done);
+    it('serves Prism CSS properly', async function () {
+      await assumeValidResponse(baseUrl + '/prism-coy.css', 'prism');
     });
 
-    it('serves healthcheck properly', function (done) {
-      assumeValidResponse(baseUrl + '/healthcheck.html', 'page ok', done);
+    it('serves healthcheck properly', async function () {
+      await assumeValidResponse(baseUrl + '/healthcheck.html', 'page ok');
     });
 
-    it('serves static files properly', function (done) {
-      assumeValidResponse(baseUrl + '/static/pullie.svg', 'svg', done);
+    it('serves static files properly', async function () {
+      await assumeValidResponse(baseUrl + '/static/pullie.svg', 'svg');
     });
   });
 
@@ -178,13 +179,9 @@ describe('Pullie (integration)', function () {
       pullie.httpServer.close(done);
     });
 
-    it('does not initialize the docs route when DISABLE_DOCS_ROUTE is set', function (done) {
-      request(baseUrl, (err, res) => {
-        assume(err).is.falsey();
-        assume(res).hasOwn('statusCode', 404);
-
-        done();
-      });
+    it('does not initialize the docs route when DISABLE_DOCS_ROUTE is set', async function () {
+      const res = await fetch(baseUrl);
+      assume(res.status).equals(404);
     });
   });
 });
