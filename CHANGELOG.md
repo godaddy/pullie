@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.2.1
+
+- Update deps
+
 ## 3.2.0
 
 - [feat] Add support for limiting Pullie to a single approved GitHub Enterprise Cloud Enterprise
