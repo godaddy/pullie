@@ -100,7 +100,7 @@ class JiraPlugin extends BasePlugin {
       })
     });
 
-    if (!res || res.status < 200 || res.status > 299) {
+    if (!res || !res.ok) {
       throw new Error(
         `Error retrieving Jira ticket info. Status code: ${(res && res.status) || 'unknown'} from Jira.`);
     }

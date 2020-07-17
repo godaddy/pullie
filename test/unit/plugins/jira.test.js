@@ -1,24 +1,26 @@
 const assume = require('assume');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
-const { json } = require('express');
-
-const sandbox = sinon.createSandbox();
-const addCommentStub = sandbox.stub();
-const commenter = {
-  addComment: addCommentStub
-};
-const fetchStub = sandbox.stub();
-
-const JiraPlugin =  proxyquire('../../../plugins/jira', {
-  'node-fetch': fetchStub
-});
-
-const jiraPlugin = new JiraPlugin();
 
 describe('JiraPlugin', function () {
+  let addCommentStub, commenter, fetchStub, JiraPlugin, jiraPlugin;
+
+  before(function () {
+    addCommentStub = sinon.stub();
+    commenter = {
+      addComment: addCommentStub
+    };
+    fetchStub = sinon.stub();
+
+    JiraPlugin =  proxyquire('../../../plugins/jira', {
+      'node-fetch': fetchStub
+    });
+
+    jiraPlugin = new JiraPlugin();
+  });
+
   after(function () {
-    sandbox.restore();
+    sinon.restore();
   });
 
   it('is a constructor', function () {
@@ -135,7 +137,8 @@ describe('JiraPlugin', function () {
 
     it('bails out on invalid HTTP status code from Jira', async function () {
       fetchStub.resolves({
-        status: 404
+        status: 404,
+        ok: false
       });
       try {
         await jiraPlugin.processRequest({
@@ -157,6 +160,7 @@ describe('JiraPlugin', function () {
     it('correctly parses 1 ticket from a PR and builds a comment with its title', async function () {
       fetchStub.resolves({
         status: 200,
+        ok: true,
         async json() {
           return {
             issues: [
@@ -196,6 +200,7 @@ describe('JiraPlugin', function () {
     it('correctly parses 2 tickets from a PR and builds a comment with its title', async function () {
       fetchStub.resolves({
         status: 200,
+        ok: true,
         async json() {
           return {
             issues: [
@@ -241,6 +246,7 @@ describe('JiraPlugin', function () {
     it('correctly parses 2 tickets without brackets from a PR and builds a comment with its title', async function () {
       fetchStub.resolves({
         status: 200,
+        ok: true,
         async json() {
           return {
             issues: [
@@ -305,6 +311,7 @@ describe('JiraPlugin', function () {
     it('correctly parses 2 tickets from a PR edit and builds a comment with its title', async function () {
       fetchStub.resolves({
         status: 200,
+        ok: true,
         async json() {
           return {
             issues: [
@@ -355,6 +362,7 @@ describe('JiraPlugin', function () {
     it('does not post when no Jira tickets are actually found in Jira query', async function () {
       fetchStub.resolves({
         status: 200,
+        ok: true,
         async json() {
           return {
             issues: []
