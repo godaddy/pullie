@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.3.0
+
+- See 3.3.0-beta.0
+
 ## 3.3.0-beta.0
 
 - Replace `request` with `node-fetch`
