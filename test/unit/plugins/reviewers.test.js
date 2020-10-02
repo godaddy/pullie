@@ -35,17 +35,23 @@ describe('ReviewersPlugin', function () {
     mockContext = {
       github: {
         pulls: {
-          createReviewRequest: requestReviewersStub
+          requestReviewers: requestReviewersStub
         },
         repos: {
           checkCollaborator: userExistsStub,
-          getContents: getFileContentsStub
+          getContent: getFileContentsStub
         }
       },
       issue() {
         return {
           ...this.repo(),
           number: 1234
+        };
+      },
+      pullRequest() {
+        return {
+          ...this.repo(),
+          pull_number: 1234
         };
       },
       repo() {

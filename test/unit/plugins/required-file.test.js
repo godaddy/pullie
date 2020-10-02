@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const RequiredFilePlugin = require('../../../plugins/required-file');
 
 const sandbox = sinon.createSandbox();
-let getContentsStub;
+let getContentStub;
 let getFilesInPullRequestStub;
 let addCommentStub;
 let commenter;
@@ -17,7 +17,7 @@ describe('RequiredFilePlugin', function () {
   });
 
   beforeEach(function () {
-    getContentsStub = sandbox.stub().resolves({ status: 200 });
+    getContentStub = sandbox.stub().resolves({ status: 200 });
     getFilesInPullRequestStub = sandbox.stub().resolves([]);
     addCommentStub = sandbox.stub();
     commenter = {
@@ -103,9 +103,15 @@ describe('RequiredFilePlugin', function () {
             }
           },
           repos: {
-            getContents: getContentsStub
+            getContent: getContentStub
           },
           paginate: getFilesInPullRequestStub
+        },
+        pullRequest() {
+          return {
+            ...this.repo(),
+            pull_number: 1234
+          };
         },
         repo() {
           return {
@@ -146,7 +152,7 @@ describe('RequiredFilePlugin', function () {
 
     it('bails out if checkIfFileExists returns an error', async function () {
       const mockError = new Error('mock error');
-      getContentsStub.rejects(mockError);
+      getContentStub.rejects(mockError);
       try {
         // @ts-ignore
         await requiredFilePlugin.checkFile(mockContext, commenter, 'file');
@@ -156,14 +162,14 @@ describe('RequiredFilePlugin', function () {
     });
 
     it(`bails out if the file doesn't exist in the first place`, async function () {
-      getContentsStub.resolves({ status: 404 });
+      getContentStub.resolves({ status: 404 });
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, 'file');
       assume(getFilesInPullRequestStub.called).is.false();
     });
 
     it('bails out if getFilesInPullRequest returns an error', async function () {
-      getContentsStub.resolves({ status: 200 });
+      getContentStub.resolves({ status: 200 });
       const mockError = new Error('mock error');
       getFilesInPullRequestStub.rejects(mockError);
       try {
@@ -176,7 +182,7 @@ describe('RequiredFilePlugin', function () {
     });
 
     it('is a no-op when the required file is included in the PR', async function () {
-      getContentsStub.resolves({ status: 200 });
+      getContentStub.resolves({ status: 200 });
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, 'file');
@@ -184,7 +190,7 @@ describe('RequiredFilePlugin', function () {
     });
 
     it('adds a comment when a required file is not included in the PR', async function () {
-      getContentsStub.resolves({ status: 200 });
+      getContentStub.resolves({ status: 200 });
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, 'file2');
@@ -192,14 +198,14 @@ describe('RequiredFilePlugin', function () {
     });
 
     it(`bails out if the file doesn't exist in the first place and the file is an object`, async function () {
-      getContentsStub.resolves({ status: 404 });
+      getContentStub.resolves({ status: 404 });
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file' });
       assume(getFilesInPullRequestStub.called).is.false();
     });
 
     it('is a no-op when the required file is included in the PR and the file is an object', async function () {
-      getContentsStub.resolves({ status: 200 });
+      getContentStub.resolves({ status: 200 });
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file' });
@@ -207,7 +213,7 @@ describe('RequiredFilePlugin', function () {
     });
 
     it('adds a comment when a required file is not included in the PR and the file is an object', async function () {
-      getContentsStub.resolves({ status: 200 });
+      getContentStub.resolves({ status: 200 });
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file2' });
@@ -215,7 +221,7 @@ describe('RequiredFilePlugin', function () {
     });
 
     it('adds a custom comment when a required file is not included in the PR and the file is an object', async function () {
-      getContentsStub.resolves({ status: 200 });
+      getContentStub.resolves({ status: 200 });
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file2', message: 'custom' });
