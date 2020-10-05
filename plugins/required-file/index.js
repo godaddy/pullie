@@ -32,7 +32,7 @@ class RequiredFilePlugin extends BasePlugin {
   }
 
   /**
-   * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
+   * @typedef {import('@octokit/webhooks').EventPayloads.PullRequest} WebhookPayloadPullRequest
    * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
    * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
    */
@@ -82,7 +82,7 @@ class RequiredFilePlugin extends BasePlugin {
     const message = '⚠️ ' + (typeof file === 'object' && file.message ||
       `You're missing a change to ${filePath}, which is a requirement for changes to this repo.`);
 
-    const existsRes = await context.github.repos.getContents({
+    const existsRes = await context.github.repos.getContent({
       ...context.repo(),
       path: filePath
     });
@@ -94,10 +94,8 @@ class RequiredFilePlugin extends BasePlugin {
      * @typedef {import('@octokit/rest').PullsListFilesResponseItem} PullsListFilesResponseItem
      * @type {PullsListFilesResponseItem[]}
      */
-    const filesInPR = await context.github.paginate(context.github.pulls.listFiles.endpoint.merge({
-      ...context.repo(),
-      pull_number: context.payload.number
-    }), res => res.data);
+    const filesInPR = await context.github.paginate(context.github.pulls.listFiles.endpoint.merge(
+      context.pullRequest()), res => res.data);
 
     if (!filesInPR.some(f => {
       return f.filename === filePath;

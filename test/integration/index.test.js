@@ -37,6 +37,7 @@ function verifyComment({ body }) {
 describe('Pullie (integration)', function () {
   /** @type {Probot} */
   let pullie;
+  /** @type {string} */
   let mockCert;
 
   before(function (done) {
@@ -49,10 +50,19 @@ describe('Pullie (integration)', function () {
 
   before(function () {
     const github = nock('https://github.test.fake')
+      .get('/api/v3/app')
+      .reply(200, {
+        events: [
+          'pull_request'
+        ]
+      })
       .post('/api/v3/app/installations/1/access_tokens')
       .reply(201, {
         token: 'mock_token',
-        expires_at: '9999-12-31T00:00:00Z'
+        expires_at: '9999-12-31T00:00:00Z',
+        permissions: {
+          contents: 'read'
+        }
       })
       .get('/api/v3/repos/org/repo/collaborators/jsmith')
       .reply(204)
@@ -104,7 +114,7 @@ describe('Pullie (integration)', function () {
     process.env.JIRA_HOST = 'jira.test.fake';
     process.env.JIRA_USERNAME = 'test_user';
     process.env.JIRA_PASSWORD = 'test_password';
-    pullie = new Probot({ id: 123, cert: mockCert });
+    pullie = new Probot({ id: 123, privateKey: mockCert });
     pullie.load(pullieApp);
   });
 
@@ -167,7 +177,7 @@ describe('Pullie (integration)', function () {
 
     before(function () {
       process.env.DISABLE_DOCS_ROUTE = 'true';
-      pullie = new Probot({ id: 123, cert: mockCert });
+      pullie = new Probot({ id: 123, privateKey: mockCert });
       pullie.load(pullieApp);
       pullie.start();
       // @ts-ignore

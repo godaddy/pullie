@@ -33,7 +33,7 @@ class ReviewerPlugin extends BasePlugin {
   }
 
   /**
-   * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
+   * @typedef {import('@octokit/webhooks').EventPayloads.WebhookPayloadPullRequest} WebhookPayloadPullRequest
    * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
    * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
    */
@@ -168,9 +168,8 @@ class ReviewerPlugin extends BasePlugin {
       );
     }
 
-    await context.github.pulls.createReviewRequest({
-      ...context.repo(),
-      pull_number: context.payload.pull_request.number,
+    await context.github.pulls.requestReviewers({
+      ...context.pullRequest(),
       reviewers: usersToRequest
     });
   }
@@ -184,7 +183,7 @@ class ReviewerPlugin extends BasePlugin {
    * @returns {Promise<Object>} parsed package.json
    */
   async getPackageJson(context) {
-    const pkg = await context.github.repos.getContents({
+    const pkg = await context.github.repos.getContent({
       ...context.repo(),
       path: 'package.json'
     });

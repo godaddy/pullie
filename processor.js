@@ -5,7 +5,7 @@ const { parseBase64Json } = require('./utils');
 const processConfig = require('./config-processor');
 
 /**
- * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
+ * @typedef {import('@octokit/webhooks').EventPayloads.WebhookPayloadPullRequest} WebhookPayloadPullRequest
  * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
  * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
  * @typedef {import('./plugins/base')} BasePlugin
@@ -22,7 +22,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     number: context.payload.number,
     requestId: context.id
   };
-  context.log.info('Processing PR', logData);
+  context.log.info(logData, 'Processing PR');
 
   if (process.env.GH_ENTERPRISE_ID) {
     const ghecEnterpriseId = parseInt(process.env.GH_ENTERPRISE_ID, 10);
@@ -45,16 +45,16 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
   try {
     repoConfig = await getRepoConfig(context);
   } catch (err) {
-    context.log.error('Error getting repository config', {
+    context.log.error({
       requestId: context.id,
       err
-    });
+    }, 'Error getting repository config');
     return;
   }
 
   if (!repoConfig) {
     // No config specified for this repo, nothing to do
-    context.log.info('No config specified for repo, nothing to do', logData);
+    context.log.info(logData, 'No config specified for repo, nothing to do');
     return;
   }
 
@@ -62,10 +62,10 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
   try {
     orgConfig = await getOrgConfig(context);
   } catch (err) {
-    context.log.warn('Error getting org config', {
+    context.log.warn({
       requestId: context.id,
       err
-    });
+    }, 'Error getting org config');
     orgConfig = null;
   }
 
@@ -73,13 +73,14 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
   // @ts-ignore
   const pluginManager = new PluginManager();
   const config = processConfig(pluginManager, orgConfig, repoConfig, invalidPlugin => {
-    context.log.error('Invalid plugin specified in repo config',
-      { repository: context.payload.repository.full_name, plugin: invalidPlugin, requestId: context.id });
+    context.log.error({
+      repository: context.payload.repository.full_name, plugin: invalidPlugin, requestId: context.id
+    }, 'Invalid plugin specified in repo config');
   });
 
   if (!Array.isArray(config.plugins) || config.plugins.length === 0) {
     // No plugins to run, nothing to do
-    context.log.info('No plugins to run, nothing to do', logData);
+    context.log.info(logData, 'No plugins to run, nothing to do');
     return;
   }
 
@@ -88,8 +89,9 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     const pluginName = typeof pluginConfig === 'string' ? pluginConfig : pluginConfig.plugin;
     const plugin = pluginManager[pluginName];
     if (!plugin) {
-      context.log.error('Invalid plugin specified in config',
-        { repository: context.payload.repository.full_name, plugin: pluginName, requestId: context.id });
+      context.log.error({
+        repository: context.payload.repository.full_name, plugin: pluginName, requestId: context.id
+      }, 'Invalid plugin specified in config');
       continue;
     }
     if (context.payload.action === 'edited' && !plugin.processesEdits) {
@@ -102,19 +104,18 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     try {
       await plugin.processRequest(context, commenter, cfg);
     } catch (pluginProcessRequestErr) {
-      context.log.error('Error running plugin',
-        {
-          error: pluginProcessRequestErr,
-          repository: context.payload.repository.full_name,
-          number: context.payload.number,
-          plugin: pluginName,
-          requestId: context.id
-        });
+      context.log.error({
+        error: pluginProcessRequestErr,
+        repository: context.payload.repository.full_name,
+        number: context.payload.number,
+        plugin: pluginName,
+        requestId: context.id
+      }, 'Error running plugin');
       continue;
     }
   }
 
-  context.log.info('Finished processing PR', logData);
+  context.log.info(logData, 'Finished processing PR');
   const comment = commenter.flushToString();
   if (comment) {
     await context.github.issues.createComment({
@@ -134,7 +135,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
 async function getRepoConfig(context) {
   let pullieRcRes = {};
   try {
-    pullieRcRes = await context.github.repos.getContents({
+    pullieRcRes = await context.github.repos.getContent({
       ...context.repo(),
       path: '.pullierc'
     });
@@ -156,7 +157,7 @@ async function getRepoConfig(context) {
 async function getOrgConfig(context) {
   let pullieRcRes = {};
   try {
-    pullieRcRes = await context.github.repos.getContents({
+    pullieRcRes = await context.github.repos.getContent({
       owner: context.payload.repository.owner.login,
       repo: '.github',
       path: '.pullierc'

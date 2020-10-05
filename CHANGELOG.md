@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- Update to `probot@10`
+
 ## 3.3.0
 
 - See 3.3.0-beta.0

@@ -14,7 +14,7 @@ class WelcomePlugin extends BasePlugin {
   }
 
   /**
-   * @typedef {import('@octokit/webhooks').WebhookPayloadPullRequest} WebhookPayloadPullRequest
+   * @typedef {import('@octokit/webhooks').EventPayloads.WebhookPayloadPullRequest} WebhookPayloadPullRequest
    * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
    * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
    */
