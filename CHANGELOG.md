@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.0.0
+
+- **MAJOR:** Drop support for `node@8`
+- Move from Travis CI to GitHub Actions 
+
 ## 3.4.0
 
 - Update to `probot@10`
