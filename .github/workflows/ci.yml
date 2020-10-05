@@ -27,6 +27,8 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+    - run: npm run coverage
+      if: ${{ matrix.node-version == '14.x' }} # only report coverage on latest Node
     - name: Coveralls
       if: ${{ matrix.node-version == '14.x' }} # only report coverage on latest Node
       uses: coverallsapp/github-action@master
