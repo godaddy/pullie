@@ -94,9 +94,8 @@ class RequiredFilePlugin extends BasePlugin {
      * @typedef {import('@octokit/rest').PullsListFilesResponseItem} PullsListFilesResponseItem
      * @type {PullsListFilesResponseItem[]}
      */
-    const filesInPR = await context.github.paginate(context.github.pulls.listFiles.endpoint.merge({
-      ...context.pullRequest()
-    }), res => res.data);
+    const filesInPR = await context.github.paginate(context.github.pulls.listFiles.endpoint.merge(
+      context.pullRequest()), res => res.data);
 
     if (!filesInPR.some(f => {
       return f.filename === filePath;
