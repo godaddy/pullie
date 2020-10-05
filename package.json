@@ -61,7 +61,7 @@
     "smee-client": "^1.2.2"
   },
   "engines": {
-    "node": ">= 8.3.0"
+    "node": ">= 10"
   },
   "nodemonConfig": {
     "exec": "npm start",
