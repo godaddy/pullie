@@ -29,7 +29,7 @@
     "test": "nyc mocha test/unit/*.test.js test/unit/**/*.test.js test/integration/*.test.js",
     "dev": "nodemon",
     "start": "probot run ./index.js",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=lcov"
   },
   "dependencies": {
     "array-shuffle": "^1.0.1",
@@ -47,7 +47,6 @@
   "devDependencies": {
     "acorn": "^8.0.3",
     "assume": "^2.0.1",
-    "coveralls": "^3.1.0",
     "eslint": "^7.10.0",
     "eslint-config-godaddy": "^4.0.0",
     "eslint-plugin-json": "^1.4.0",
@@ -61,7 +60,7 @@
     "smee-client": "^1.2.2"
   },
   "engines": {
-    "node": ">= 8.3.0"
+    "node": ">= 10"
   },
   "nodemonConfig": {
     "exec": "npm start",
