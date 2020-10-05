@@ -29,7 +29,7 @@
     "test": "nyc mocha test/unit/*.test.js test/unit/**/*.test.js test/integration/*.test.js",
     "dev": "nodemon",
     "start": "probot run ./index.js",
-    "coverage": "nyc report --reporter=text-lcov"
+    "coverage": "nyc report --reporter=lcov"
   },
   "dependencies": {
     "array-shuffle": "^1.0.1",
