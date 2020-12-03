@@ -32,7 +32,7 @@
     "coverage": "nyc report --reporter=lcov"
   },
   "dependencies": {
-    "array-shuffle": "^1.0.1",
+    "array-shuffle": "^2.0.0",
     "clone-deep": "^4.0.1",
     "deepmerge": "^4.2.2",
     "diagnostics": "^2.0.2",
