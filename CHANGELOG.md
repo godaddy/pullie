@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.0.1
+
+- Update dependencies
+
 ## 4.0.0
 
 - **MAJOR:** Drop support for `node@8`
