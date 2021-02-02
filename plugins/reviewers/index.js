@@ -168,7 +168,7 @@ class ReviewerPlugin extends BasePlugin {
       );
     }
 
-    await context.github.pulls.requestReviewers({
+    await context.octokit.pulls.requestReviewers({
       ...context.pullRequest(),
       reviewers: usersToRequest
     });
@@ -183,7 +183,7 @@ class ReviewerPlugin extends BasePlugin {
    * @returns {Promise<Object>} parsed package.json
    */
   async getPackageJson(context) {
-    const pkg = await context.github.repos.getContent({
+    const pkg = await context.octokit.repos.getContent({
       ...context.repo(),
       path: 'package.json'
     });
@@ -223,7 +223,7 @@ class ReviewerPlugin extends BasePlugin {
 
     return await pReduce(maybeUsers, async (memo, user) => {
       try {
-        const res = await context.github.repos.checkCollaborator({
+        const res = await context.octokit.repos.checkCollaborator({
           ...context.repo(),
           username: user
         });

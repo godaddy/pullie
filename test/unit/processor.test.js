@@ -53,7 +53,7 @@ const mockContext = {
     warn: warnLogStub,
     error: errorLogStub
   },
-  github: {
+  octokit: {
     issues: {
       createComment: createCommentStub
     },

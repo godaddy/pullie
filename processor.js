@@ -118,7 +118,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
   context.log.info(logData, 'Finished processing PR');
   const comment = commenter.flushToString();
   if (comment) {
-    await context.github.issues.createComment({
+    await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: context.payload.number,
       body: comment
@@ -135,7 +135,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
 async function getRepoConfig(context) {
   let pullieRcRes = {};
   try {
-    pullieRcRes = await context.github.repos.getContent({
+    pullieRcRes = await context.octokit.repos.getContent({
       ...context.repo(),
       path: '.pullierc'
     });
@@ -157,7 +157,7 @@ async function getRepoConfig(context) {
 async function getOrgConfig(context) {
   let pullieRcRes = {};
   try {
-    pullieRcRes = await context.github.repos.getContent({
+    pullieRcRes = await context.octokit.repos.getContent({
       owner: context.payload.repository.owner.login,
       repo: '.github',
       path: '.pullierc'

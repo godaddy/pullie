@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- Replace various deprecated API calls into Probot in preparation for `probot@11`
+
 ## 4.0.1
 
 - Update dependencies

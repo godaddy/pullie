@@ -23,7 +23,7 @@ describe('WelcomePlugin', function () {
     addCommentStub.reset();
 
     mockContext = {
-      github: {
+      octokit: {
         issues: {
           listForRepo: function () {
             return Promise.resolve({
@@ -101,7 +101,7 @@ describe('WelcomePlugin', function () {
     it('will do nothing if the user is already part of the repo', async function () {
       mockContext = {
         ...mockContext,
-        github: {
+        octokit: {
           issues: {
             listForRepo: function () {
               return Promise.resolve({

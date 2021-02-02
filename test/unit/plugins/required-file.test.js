@@ -94,7 +94,7 @@ describe('RequiredFilePlugin', function () {
 
     beforeEach(function () {
       mockContext = {
-        github: {
+        octokit: {
           pulls: {
             listFiles: {
               endpoint: {

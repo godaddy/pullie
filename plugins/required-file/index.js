@@ -82,7 +82,7 @@ class RequiredFilePlugin extends BasePlugin {
     const message = '⚠️ ' + (typeof file === 'object' && file.message ||
       `You're missing a change to ${filePath}, which is a requirement for changes to this repo.`);
 
-    const existsRes = await context.github.repos.getContent({
+    const existsRes = await context.octokit.repos.getContent({
       ...context.repo(),
       path: filePath
     });
@@ -94,7 +94,7 @@ class RequiredFilePlugin extends BasePlugin {
      * @typedef {import('@octokit/rest').PullsListFilesResponseItem} PullsListFilesResponseItem
      * @type {PullsListFilesResponseItem[]}
      */
-    const filesInPR = await context.github.paginate(context.github.pulls.listFiles.endpoint.merge(
+    const filesInPR = await context.octokit.paginate(context.octokit.pulls.listFiles.endpoint.merge(
       context.pullRequest()), res => res.data);
 
     if (!filesInPR.some(f => {
