@@ -33,7 +33,7 @@ describe('ReviewersPlugin', function () {
     };
 
     mockContext = {
-      github: {
+      octokit: {
         pulls: {
           requestReviewers: requestReviewersStub
         },

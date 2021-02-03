@@ -35,7 +35,7 @@ class WelcomePlugin extends BasePlugin {
     if (!message) return;
 
     // Get all issues for repo with user as creator
-    const response = await context.github.issues.listForRepo(context.repo({
+    const response = await context.octokit.issues.listForRepo(context.repo({
       state: 'all',
       creator: context.payload.pull_request.user.login
     }));

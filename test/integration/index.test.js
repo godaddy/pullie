@@ -5,7 +5,7 @@ const path = require('path');
 /** @type {(url: string, options?: RequestInit) => Promise<Response>} */
 const fetch = require('node-fetch');
 const pullieApp = require('../../');
-const { Probot } = require('probot');
+const { Server, Probot } = require('probot');
 const { assumeValidResponse } = require('./helpers');
 const openPRPayload = require('../fixtures/payloads/open-pr.json');
 const mockOrgPullieRC = require('../fixtures/payloads/mock-org-pullierc.json');
@@ -109,12 +109,11 @@ describe('Pullie (integration)', function () {
   });
 
   before(function () {
-    process.env.GHE_HOST = 'github.test.fake';
     process.env.JIRA_PROTOCOL = 'https';
     process.env.JIRA_HOST = 'jira.test.fake';
     process.env.JIRA_USERNAME = 'test_user';
     process.env.JIRA_PASSWORD = 'test_password';
-    pullie = new Probot({ id: 123, privateKey: mockCert });
+    pullie = new Probot({ appId: 123, privateKey: mockCert, baseUrl: 'https://github.test.fake/api/v3' });
     pullie.load(pullieApp);
   });
 
@@ -143,16 +142,22 @@ describe('Pullie (integration)', function () {
   });
 
   describe('Docs', function () {
+    /** @type {import('probot').Server} */
+    let server;
     let baseUrl;
-    before(function () {
-      pullie.start();
+    before(async function () {
+      server = new Server({
+        Probot: Probot.defaults({ appId: 123, privateKey: mockCert })
+      });
+      await server.load(pullieApp);
+      const httpServer = await server.start();
       // @ts-ignore
-      const { port } = pullie.httpServer.address();
+      const { port } = httpServer.address();
       baseUrl = `http://localhost:${port}/docs`;
     });
 
-    after(function (done) {
-      pullie.httpServer.close(done);
+    after(async function () {
+      await server.stop();
     });
 
     it('serves documentation at host root', async function () {
@@ -173,20 +178,24 @@ describe('Pullie (integration)', function () {
   });
 
   describe('No Docs', function () {
+    /** @type {import('probot').Server} */
+    let server;
     let baseUrl;
 
-    before(function () {
+    before(async function () {
       process.env.DISABLE_DOCS_ROUTE = 'true';
-      pullie = new Probot({ id: 123, privateKey: mockCert });
-      pullie.load(pullieApp);
-      pullie.start();
+      server = new Server({
+        Probot: Probot.defaults({ appId: 123, privateKey: mockCert })
+      });
+      await server.load(pullieApp);
+      const httpServer = await server.start();
       // @ts-ignore
-      const { port } = pullie.httpServer.address();
+      const { port } = httpServer.address();
       baseUrl = `http://localhost:${port}/docs`;
     });
 
-    after(function (done) {
-      pullie.httpServer.close(done);
+    after(async function () {
+      await server.stop();
     });
 
     it('does not initialize the docs route when DISABLE_DOCS_ROUTE is set', async function () {
