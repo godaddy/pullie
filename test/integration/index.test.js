@@ -102,7 +102,7 @@ describe('Pullie (integration)', function () {
       });
   });
 
-  before(async function () {
+  before(function () {
     process.env.JIRA_PROTOCOL = 'https';
     process.env.JIRA_HOST = 'jira.test.fake';
     process.env.JIRA_USERNAME = 'test_user';
