@@ -1,6 +1,6 @@
 {
   "name": "pullie",
-  "version": "4.1.0",
+  "version": "5.0.0-alpha.0",
   "description": "A GitHub bot that makes your PRs better",
   "author": "GoDaddy.com Operating Company, LLC",
   "maintainers": [

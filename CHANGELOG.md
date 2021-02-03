@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 5.0.0-alpha.0
+
+- **MAJOR:** Update to `probot@11`
+- Update other various dependencies
+
 ## 4.1.0
 
 - Replace various deprecated API calls into Probot in preparation for `probot@11`
