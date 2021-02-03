@@ -50,12 +50,6 @@ describe('Pullie (integration)', function () {
 
   before(function () {
     const github = nock('https://github.test.fake')
-      .get('/api/v3/app')
-      .reply(200, {
-        events: [
-          'pull_request'
-        ]
-      })
       .post('/api/v3/app/installations/1/access_tokens')
       .reply(201, {
         token: 'mock_token',
@@ -108,13 +102,11 @@ describe('Pullie (integration)', function () {
       });
   });
 
-  before(function () {
+  before(async function () {
     process.env.JIRA_PROTOCOL = 'https';
     process.env.JIRA_HOST = 'jira.test.fake';
     process.env.JIRA_USERNAME = 'test_user';
     process.env.JIRA_PASSWORD = 'test_password';
-    pullie = new Probot({ appId: 123, privateKey: mockCert, baseUrl: 'https://github.test.fake/api/v3' });
-    pullie.load(pullieApp);
   });
 
   after(function () {
@@ -122,11 +114,15 @@ describe('Pullie (integration)', function () {
   });
 
   describe('API', function () {
-    before(function () {
+    before(async function () {
+      process.env.DISABLE_DOCS_ROUTE = 'true';
+      pullie = new Probot({ appId: 123, privateKey: mockCert, baseUrl: 'https://github.test.fake/api/v3' });
+      await pullie.load(pullieApp);
       nock.disableNetConnect();
     });
 
     after(function () {
+      delete process.env.DISABLE_DOCS_ROUTE;
       nock.enableNetConnect();
     });
 
@@ -137,6 +133,10 @@ describe('Pullie (integration)', function () {
         name: 'pull_request',
         payload: openPRPayload
       });
+      if (!nock.isDone()) {
+        // eslint-disable-next-line no-console
+        console.error('pending mocks: %j', nock.pendingMocks());
+      }
       assume(nock.isDone()).is.true();
     });
   });
