@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.0.0
+
+- See [5.0.0-alpha.0](#500-alpha0)
+
 ## 5.0.0-alpha.0
 
 - **MAJOR:** Update to `probot@11`
