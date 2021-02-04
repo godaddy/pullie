@@ -1,6 +1,6 @@
 {
   "name": "pullie",
-  "version": "4.1.0",
+  "version": "5.0.0-alpha.0",
   "description": "A GitHub bot that makes your PRs better",
   "author": "GoDaddy.com Operating Company, LLC",
   "maintainers": [
@@ -40,23 +40,23 @@
     "handlebars": "^4.7.6",
     "node-fetch": "^2.6.1",
     "p-reduce": "^2.1.0",
-    "prismjs": "^1.20.0",
-    "probot": "^10.19.0",
+    "prismjs": "^1.23.0",
+    "probot": "^11.0.5",
     "resolve-cwd": "^3.0.0"
   },
   "devDependencies": {
-    "acorn": "^8.0.3",
-    "assume": "^2.0.1",
-    "eslint": "^7.10.0",
-    "eslint-config-godaddy": "^4.0.0",
-    "eslint-plugin-json": "^1.4.0",
+    "acorn": "^8.0.5",
+    "assume": "^2.3.0",
+    "eslint": "^7.19.0",
+    "eslint-config-godaddy": "^4.0.1",
+    "eslint-plugin-json": "^2.1.2",
     "eslint-plugin-mocha": "^8.0.0",
-    "mocha": "^8.1.3",
-    "nock": "^13.0.4",
-    "nodemon": "^2.0.4",
+    "mocha": "^8.2.1",
+    "nock": "^13.0.7",
+    "nodemon": "^2.0.7",
     "nyc": "^15.1.0",
     "proxyquire": "^2.1.3",
-    "sinon": "^9.1.0",
+    "sinon": "^9.2.4",
     "smee-client": "^1.2.2"
   },
   "engines": {
