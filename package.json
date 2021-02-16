@@ -37,7 +37,7 @@
     "deepmerge": "^4.2.2",
     "diagnostics": "^2.0.2",
     "express": "^4.17.1",
-    "handlebars": "^4.7.6",
+    "handlebars": "^4.7.7",
     "node-fetch": "^2.6.1",
     "p-reduce": "^2.1.0",
     "prismjs": "^1.23.0",
