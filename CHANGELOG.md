@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- Update dependencies
+
 ## 5.0.0
 
 - See [5.0.0-alpha.0](#500-alpha0)
