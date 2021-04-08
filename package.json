@@ -39,7 +39,7 @@
     "express": "^4.17.1",
     "handlebars": "^4.7.7",
     "node-fetch": "^2.6.1",
-    "p-reduce": "^2.1.0",
+    "p-reduce": "^3.0.0",
     "prismjs": "^1.23.0",
     "probot": "^11.0.5",
     "resolve-cwd": "^3.0.0"
