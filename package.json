@@ -41,7 +41,7 @@
     "node-fetch": "^2.6.1",
     "p-reduce": "^2.1.0",
     "prismjs": "^1.23.0",
-    "probot": "^11.0.5",
+    "probot": "^11.1.0",
     "resolve-cwd": "^3.0.0"
   },
   "devDependencies": {
