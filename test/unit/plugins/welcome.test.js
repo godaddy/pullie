@@ -1,8 +1,11 @@
-const assume = require('assume');
-const sinon = require('sinon');
+import assume from 'assume';
+import assumeSinon from 'assume-sinon';
+import sinon from 'sinon';
 
-const WelcomePlugin = require('../../../plugins/welcome');
-const Commenter = require('../../../commenter');
+assume.use(assumeSinon);
+
+import WelcomePlugin from '../../../plugins/welcome/index.js';
+import Commenter from '../../../commenter.js';
 
 const sandbox = sinon.createSandbox();
 const addCommentStub = sandbox.stub();
@@ -77,7 +80,7 @@ describe('WelcomePlugin', function () {
     it('will return if no message is defined', async function () {
       await welcomePlugin.processRequest(mockContext, commenter, {});
 
-      assume(addCommentStub.called).is.false();
+      assume(addCommentStub).has.not.been.called();
     });
 
     it('will add the welcome comment from env file if the user is new to the repo', async function () {
@@ -87,14 +90,14 @@ describe('WelcomePlugin', function () {
 
       await instance.processRequest(mockContext, commenter);
 
-      assume(addCommentStub.called).is.true();
+      assume(addCommentStub).has.been.called();
       assume(addCommentStub.getCall(0).args).eql(['Thanks for making a contribution to the project!', Commenter.priority.High]);
     });
 
     it('will add the welcome comment from custom config if the user is new to the repo', async function () {
       await welcomePlugin.processRequest(mockContext, commenter, { welcomeMessage: 'Welcome to the project!' });
 
-      assume(addCommentStub.called).is.true();
+      assume(addCommentStub).has.been.called();
       assume(addCommentStub.getCall(0).args).eql(['Welcome to the project!', Commenter.priority.High]);
     });
 
@@ -131,7 +134,7 @@ describe('WelcomePlugin', function () {
 
       await welcomePlugin.processRequest(mockContext, commenter, { welcomeMessage: 'hey hey hey!' });
 
-      assume(addCommentStub.called).is.false();
+      assume(addCommentStub).has.not.been.called();
     });
   });
 });

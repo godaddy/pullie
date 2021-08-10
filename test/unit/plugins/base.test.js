@@ -1,5 +1,5 @@
-const assume = require('assume');
-const BasePlugin = require('../../../plugins/base');
+import assume from 'assume';
+import BasePlugin from '../../../plugins/base.js';
 
 describe('Base plugin', function () {
   /** @type {BasePlugin} */

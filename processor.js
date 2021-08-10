@@ -1,22 +1,37 @@
 /* eslint no-continue: 0 */
-const Commenter = require('./commenter');
-const PluginManager = require('./plugins');
-const { parseBase64Json } = require('./utils');
-const processConfig = require('./config-processor');
+import Commenter from './commenter.js';
+import PluginManager from './plugins/index.js';
+import { parseBase64Json } from './utils.js';
+import processConfig from './config-processor.js';
 
 /**
  * @typedef {import('@octokit/webhooks').EventPayloads.WebhookPayloadPullRequest} WebhookPayloadPullRequest
  * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
  * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
- * @typedef {import('./plugins/base')} BasePlugin
+ * @typedef {import('./plugins/base.js')} BasePlugin
  * @typedef {{[pluginName: string]: BasePlugin}} PluginManagerType
  */
 /**
  * Process a PR
  *
  * @param {ProbotContext} context PR webhook context
+ * @returns {Promise<void>} Completion promise
+ * @public
  */
-module.exports = async function processPR(context) { // eslint-disable-line complexity, max-statements
+export default async function processPR(context) {
+  return processPRInternal(context);
+}
+
+/**
+ * Process a PR (internal function for testing)
+ * @param {ProbotContext} context PR webhook context
+ * @param {typeof Commenter} CommenterType Commenter type (for dependency injection)
+ * @param {typeof PluginManager} PluginManagerType PluginManager type (for dependency injection)
+ * @returns {Promise<void>} Completion promise
+ * @private
+ */
+// eslint-disable-next-line complexity, max-statements
+export async function processPRInternal(context, CommenterType = Commenter, PluginManagerType = PluginManager) {
   const logData = {
     repository: context.payload.repository.full_name,
     number: context.payload.number,
@@ -71,7 +86,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
 
   /** @type {PluginManagerType} */
   // @ts-ignore
-  const pluginManager = new PluginManager();
+  const pluginManager = new PluginManagerType();
   const config = processConfig(pluginManager, orgConfig, repoConfig, invalidPlugin => {
     context.log.error({
       repository: context.payload.repository.full_name, plugin: invalidPlugin, requestId: context.id
@@ -84,7 +99,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
     return;
   }
 
-  const commenter = new Commenter();
+  const commenter = new CommenterType();
   for (const pluginConfig of config.plugins) {
     const pluginName = typeof pluginConfig === 'string' ? pluginConfig : pluginConfig.plugin;
     const plugin = pluginManager[pluginName];
@@ -124,7 +139,7 @@ module.exports = async function processPR(context) { // eslint-disable-line comp
       body: comment
     });
   }
-};
+}
 
 /**
  * Get config for the repo specified in the context

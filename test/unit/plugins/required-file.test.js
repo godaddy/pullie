@@ -1,7 +1,10 @@
-const assume = require('assume');
-const sinon = require('sinon');
+import assume from 'assume';
+import assumeSinon from 'assume-sinon';
+import sinon from 'sinon';
 
-const RequiredFilePlugin = require('../../../plugins/required-file');
+assume.use(assumeSinon);
+
+import RequiredFilePlugin from '../../../plugins/required-file/index.js';
 
 const sandbox = sinon.createSandbox();
 let getContentStub;
@@ -71,7 +74,7 @@ describe('RequiredFilePlugin', function () {
         await requiredFilePlugin.processRequest(null, commenter, {});
       } catch (err) {
         assume(err).is.truthy();
-        assume(checkFileSpy.called).is.false();
+        assume(checkFileSpy).has.not.been.called();
       }
     });
 
@@ -85,7 +88,7 @@ describe('RequiredFilePlugin', function () {
         ]
       });
 
-      assume(checkFileStub.callCount).equals(3);
+      assume(checkFileStub).has.been.called(3);
     });
   });
 
@@ -165,7 +168,7 @@ describe('RequiredFilePlugin', function () {
       getContentStub.resolves({ status: 404 });
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, 'file');
-      assume(getFilesInPullRequestStub.called).is.false();
+      assume(getFilesInPullRequestStub).has.not.been.called();
     });
 
     it('bails out if getFilesInPullRequest returns an error', async function () {
@@ -177,7 +180,7 @@ describe('RequiredFilePlugin', function () {
         await requiredFilePlugin.checkFile(mockContext, commenter, 'file');
       } catch (err) {
         assume(err).equals(mockError);
-        assume(addCommentStub.called).is.false();
+        assume(addCommentStub).has.not.been.called();
       }
     });
 
@@ -186,7 +189,7 @@ describe('RequiredFilePlugin', function () {
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, 'file');
-      assume(addCommentStub.called).is.false();
+      assume(addCommentStub).has.not.been.called();
     });
 
     it('adds a comment when a required file is not included in the PR', async function () {
@@ -194,14 +197,14 @@ describe('RequiredFilePlugin', function () {
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, 'file2');
-      assume(addCommentStub.calledWithMatch('file2')).is.true();
+      assume(addCommentStub).calledWithMatch('file2');
     });
 
     it(`bails out if the file doesn't exist in the first place and the file is an object`, async function () {
       getContentStub.resolves({ status: 404 });
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file' });
-      assume(getFilesInPullRequestStub.called).is.false();
+      assume(getFilesInPullRequestStub).has.not.been.called();
     });
 
     it('is a no-op when the required file is included in the PR and the file is an object', async function () {
@@ -209,7 +212,7 @@ describe('RequiredFilePlugin', function () {
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file' });
-      assume(addCommentStub.called).is.false();
+      assume(addCommentStub).has.not.been.called();
     });
 
     it('adds a comment when a required file is not included in the PR and the file is an object', async function () {
@@ -217,7 +220,7 @@ describe('RequiredFilePlugin', function () {
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file2' });
-      assume(addCommentStub.calledWithMatch('file2')).is.true();
+      assume(addCommentStub).calledWithMatch('file2');
     });
 
     it('adds a custom comment when a required file is not included in the PR and the file is an object', async function () {
@@ -225,7 +228,7 @@ describe('RequiredFilePlugin', function () {
       getFilesInPullRequestStub.resolves([{ filename: 'file' }]);
       // @ts-ignore
       await requiredFilePlugin.checkFile(mockContext, commenter, { path: 'file2', message: 'custom' });
-      assume(addCommentStub.calledWithMatch('custom')).is.true();
+      assume(addCommentStub).calledWithMatch('custom');
     });
   });
 });

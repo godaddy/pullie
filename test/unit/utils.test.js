@@ -1,12 +1,8 @@
-const assume = require('assume');
+import assume from 'assume';
 
-const Utils = require('../../utils');
+import * as Utils from '../../utils.js';
 
-describe('Utils', () => {
-  it('is an object', function () {
-    assume(Utils).is.an('object');
-  });
-
+describe('Utils', function () {
   describe('.parseBase64Json', function () {
     const mockPkg = {
       content: 'eyJmb28iOiAiYmFyIn0K',

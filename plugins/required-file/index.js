@@ -1,7 +1,7 @@
-const BasePlugin = require('../base');
-const Commenter = require('../../commenter');
+import BasePlugin from '../base.js';
+import Commenter from '../../commenter.js';
 
-class RequiredFilePlugin extends BasePlugin {
+export default class RequiredFilePlugin extends BasePlugin {
   /**
    * Whether this plugin processes edit actions
    * @public
@@ -32,7 +32,7 @@ class RequiredFilePlugin extends BasePlugin {
   }
 
   /**
-   * @typedef {import('@octokit/webhooks').EventPayloads.PullRequest} WebhookPayloadPullRequest
+   * @typedef {import('@octokit/webhooks').EventPayloads.WebhookPayloadPullRequest} WebhookPayloadPullRequest
    * @typedef {WebhookPayloadPullRequest & { changes: Object }} WebhookPayloadPullRequestWithChanges
    * @typedef {import('probot').Context<WebhookPayloadPullRequestWithChanges>} ProbotContext
    */
@@ -91,8 +91,9 @@ class RequiredFilePlugin extends BasePlugin {
     if (!exists) return;
 
     /**
-     * @typedef {import('@octokit/rest').PullsListFilesResponseItem} PullsListFilesResponseItem
-     * @type {PullsListFilesResponseItem[]}
+     * @typedef {import('@octokit/rest').RestEndpointMethodTypes} OctokitTypes
+     * @typedef {OctokitTypes["pulls"]["listFiles"]["response"]["data"]} PullsListFilesResponseItems
+     * @type {PullsListFilesResponseItems}
      */
     const filesInPR = await context.octokit.paginate(context.octokit.pulls.listFiles.endpoint.merge(
       context.pullRequest()), res => res.data);
@@ -104,5 +105,3 @@ class RequiredFilePlugin extends BasePlugin {
     }
   }
 }
-
-module.exports = RequiredFilePlugin;

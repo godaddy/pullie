@@ -1,4 +1,4 @@
-class Commenter {
+export default class Commenter {
   /**
    * Unified commenter module
    *
@@ -48,19 +48,17 @@ class Commenter {
 
     return commentList;
   }
+
+  /**
+   * Priority options to pass to `addComment`
+   *
+   * @enum {Number}
+   * @readonly
+   * @public
+   */
+  static priority = {
+    Low: 0,
+    Medium: 1,
+    High: 2
+  };
 }
-
-/**
- * Priority options to pass to `addComment`
- *
- * @enum {Number}
- * @readonly
- * @public
- */
-Commenter.priority = {
-  Low: 0,
-  Medium: 1,
-  High: 2
-};
-
-module.exports = Commenter;

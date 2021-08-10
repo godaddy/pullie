@@ -3,10 +3,12 @@
   "env": {
     "node": true
   },
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "ecmaVersion": 9
+    "ecmaVersion": 2020
   },
   "plugins": [
+    "eslint-plugin-import",
     "eslint-plugin-json"
   ],
   "rules": {

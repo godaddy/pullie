@@ -1,9 +1,12 @@
 /* eslint max-statements: 0, no-console: 0 */
 
-const assume = require('assume');
-const proxyquire = require('proxyquire');
-const sinon = require('sinon');
-const BasePlugin = require('../../plugins/base');
+import assume from 'assume';
+import assumeSinon from 'assume-sinon';
+import sinon from 'sinon';
+import BasePlugin from '../../plugins/base.js';
+import processPRReal, { processPRInternal } from '../../processor.js';
+
+assume.use(assumeSinon);
 
 let MOCK_COMMENT;
 class MockCommenter {
@@ -34,13 +37,28 @@ class MockPluginManager {
     };
   }
 }
-const processPR = proxyquire('../../processor', {
-  './commenter': MockCommenter,
-  './plugins': MockPluginManager,
-  './utils': {
-    parseBase64Json: sinon.stub().returnsArg(0)
-  }
-});
+
+/**
+ * @typedef {import('../../processor').ProbotContext} ProbotContext
+ */
+/**
+ * ProcessPR function with some dependencies injected
+ * @param {ProbotContext} context PR webhook context
+ * @returns {Promise<void>} Completion promise
+ */
+async function processPR(context) {
+  return processPRInternal(context, MockCommenter, MockPluginManager);
+}
+
+/**
+ * Convert an object into a base64-encoded JSON string
+ *
+ * @param {Object} obj Object to convert
+ * @returns {string} base64-encoded JSON string
+ */
+function otoa(obj) {
+  return { content: Buffer.from(JSON.stringify(obj)).toString('base64') };
+}
 
 const infoLogStub = sinon.stub();
 const errorLogStub = sinon.stub();
@@ -71,7 +89,7 @@ const mockContext = {
   id: 'MOCK-ID'
 };
 
-describe('Processor', () => {
+describe('Processor', function () {
   beforeEach(function () {
     mockContext.payload = {
       action: 'opened',
@@ -86,7 +104,7 @@ describe('Processor', () => {
     };
     getContentStub.resolves({
       status: 200,
-      data: {
+      data: otoa({
         plugins: [
           'mockPlugin1',
           {
@@ -96,13 +114,13 @@ describe('Processor', () => {
             }
           }
         ]
-      }
+      })
     });
     getContentStub.withArgs(sinon.match({
       repo: '.github'
     })).resolves({
       status: 200,
-      data: {
+      data: otoa({
         plugins: [
           {
             plugin: 'mockPlugin2',
@@ -112,7 +130,7 @@ describe('Processor', () => {
           },
           'mockPlugin3'
         ]
-      }
+      })
     });
     processRequestStub1.resolves();
     processRequestStub2.resolves();
@@ -127,15 +145,15 @@ describe('Processor', () => {
   });
 
   it('is an async function', function () {
-    assume(processPR).is.an('asyncfunction');
-    assume(processPR).has.length(1);
+    assume(processPRReal).is.an('asyncfunction');
+    assume(processPRReal).has.length(1);
   });
 
   it('bails when PR is not from an Enterprise when one is required', async function () {
     process.env.GH_ENTERPRISE_ID = '123';
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('PR is not from the configured Enterprise, nothing to do')).is.true();
-    assume(getContentStub.called).is.false();
+    assume(infoLogStub).has.been.calledWith('PR is not from the configured Enterprise, nothing to do');
+    assume(getContentStub).has.not.been.called();
   });
 
   it('bails when PR is not from the configured Enterprise', async function () {
@@ -144,8 +162,8 @@ describe('Processor', () => {
       id: 456
     };
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('PR is not from the configured Enterprise, nothing to do')).is.true();
-    assume(getContentStub.called).is.false();
+    assume(infoLogStub).calledWith('PR is not from the configured Enterprise, nothing to do');
+    assume(getContentStub).has.not.been.called();
   });
 
   it('does not bail when PR is from the configured Enterprise', async function () {
@@ -154,24 +172,24 @@ describe('Processor', () => {
       id: 123
     };
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('PR is from the configured Enterprise')).is.true();
-    assume(getContentStub.called).is.true();
+    assume(infoLogStub).calledWith('PR is from the configured Enterprise');
+    assume(getContentStub).has.been.called();
   });
 
   it('bails when PR is from a public repo and NO_PUBLIC_REPOS is enabled', async function () {
     process.env.NO_PUBLIC_REPOS = 'true';
     await processPR(mockContext);
-    assume(infoLogStub.calledWith('Pullie has been disabled on public repos, nothing to do')).is.true();
-    assume(getContentStub.called).is.false();
+    assume(infoLogStub).calledWith('Pullie has been disabled on public repos, nothing to do');
+    assume(getContentStub).has.not.been.called();
   });
 
   it('bails when getRepoConfig rejects', async function () {
     const mockError = new Error('MOCK');
     getContentStub.rejects(mockError);
     await processPR(mockContext);
-    assume(errorLogStub.calledWithMatch(sinon.match({
+    assume(errorLogStub).calledWithMatch(sinon.match({
       err: mockError
-    }), 'Error getting repository config')).is.true();
+    }), 'Error getting repository config');
   });
 
   it('bails when no config is present', async function () {
@@ -179,7 +197,7 @@ describe('Processor', () => {
       status: 404
     });
     await processPR(mockContext);
-    assume(infoLogStub.calledWith(sinon.match.object, 'No config specified for repo, nothing to do')).is.true();
+    assume(infoLogStub).calledWith(sinon.match.object, 'No config specified for repo, nothing to do');
   });
 
   it('logs a warning when an error is encountered loading org-level config', async function () {
@@ -190,8 +208,8 @@ describe('Processor', () => {
       message: 'Some mock error'
     });
     await processPR(mockContext);
-    assume(warnLogStub.calledWith(sinon.match.object, 'Error getting org config')).is.true();
-    assume(createCommentStub.called).is.true();
+    assume(warnLogStub).calledWith(sinon.match.object, 'Error getting org config');
+    assume(createCommentStub).has.been.called();
   });
 
   it('does not bail when no org-level config is found', async function () {
@@ -201,47 +219,47 @@ describe('Processor', () => {
       status: 404
     });
     await processPR(mockContext);
-    assume(warnLogStub.called).is.false();
-    assume(createCommentStub.called).is.true();
+    assume(warnLogStub).has.not.been.called();
+    assume(createCommentStub).has.been.called();
   });
 
   it('bails when no plugins array is present in config', async function () {
     getContentStub.resetBehavior();
     getContentStub.resolves({
       status: 200,
-      data: {}
+      data: otoa({})
     });
     await processPR(mockContext);
-    assume(infoLogStub.calledWith(sinon.match.object, 'No plugins to run, nothing to do')).is.true();
+    assume(infoLogStub).calledWith(sinon.match.object, 'No plugins to run, nothing to do');
   });
 
   it('bails when the config has an empty plugins array', async function () {
     getContentStub.resetBehavior();
     getContentStub.resolves({
       status: 200,
-      data: {
+      data: otoa({
         plugins: []
-      }
+      })
     });
     await processPR(mockContext);
-    assume(infoLogStub.calledWith(sinon.match.object, 'No plugins to run, nothing to do')).is.true();
+    assume(infoLogStub).calledWith(sinon.match.object, 'No plugins to run, nothing to do');
   });
 
   it('does not bail when an unknown plugin is requested in repo config', async function () {
     getContentStub.resolves({
       status: 200,
-      data: {
+      data: otoa({
         plugins: [
           'unknownPlugin'
         ]
-      }
+      })
     });
     await processPR(mockContext);
-    assume(errorLogStub.calledWithMatch(sinon.match({
+    assume(errorLogStub).calledWithMatch(sinon.match({
       plugin: 'unknownPlugin'
-    }), 'Invalid plugin specified in repo config')).is.true();
-    assume(infoLogStub.calledWith(sinon.match.object, 'Finished processing PR')).is.true();
-    assume(createCommentStub.called).is.true();
+    }), 'Invalid plugin specified in repo config');
+    assume(infoLogStub).calledWith(sinon.match.object, 'Finished processing PR');
+    assume(createCommentStub).has.been.called();
   });
 
   it('does not bail when an unknown plugin is requested in org config', async function () {
@@ -249,87 +267,87 @@ describe('Processor', () => {
       repo: '.github'
     })).resolves({
       status: 200,
-      data: {
+      data: otoa({
         plugins: [
           'unknownPlugin'
         ]
-      }
+      })
     });
     await processPR(mockContext);
-    assume(errorLogStub.calledWithMatch(sinon.match({
+    assume(errorLogStub).calledWithMatch(sinon.match({
       plugin: 'unknownPlugin'
-    }), 'Invalid plugin specified in config')).is.true();
-    assume(infoLogStub.calledWith(sinon.match.object, 'Finished processing PR')).is.true();
-    assume(createCommentStub.called).is.true();
+    }), 'Invalid plugin specified in config');
+    assume(infoLogStub).calledWith(sinon.match.object, 'Finished processing PR');
+    assume(createCommentStub).has.been.called();
   });
 
   it('runs all specified plugins', async function () {
     await processPR(mockContext);
-    assume(errorLogStub.called).is.false();
-    assume(processRequestStub1.called).is.true();
-    assume(processRequestStub2.called).is.true();
-    assume(processRequestStub3.called).is.true();
-    assume(infoLogStub.calledWith(sinon.match.object, 'Finished processing PR')).is.true();
-    assume(createCommentStub.called).is.true();
+    assume(errorLogStub).has.not.been.called();
+    assume(processRequestStub1).has.been.called();
+    assume(processRequestStub2).has.been.called();
+    assume(processRequestStub3).has.been.called();
+    assume(infoLogStub).calledWith(sinon.match.object, 'Finished processing PR');
+    assume(createCommentStub).has.been.called();
   });
 
   it('properly merges repo-level and org-level config for a plugin', async function () {
     await processPR(mockContext);
-    assume(processRequestStub2.calledWithMatch(mockContext, sinon.match.instanceOf(MockCommenter), sinon.match({
+    assume(processRequestStub2).calledWithMatch(mockContext, sinon.match.instanceOf(MockCommenter), sinon.match({
       foo: 'bar',
       baz: 'blah'
-    }))).is.true();
+    }));
   });
 
   it('skips plugins that do not process edits when processing an edit', async function () {
     mockContext.payload.action = 'edited';
     await processPR(mockContext);
-    assume(errorLogStub.called).is.false();
-    assume(processRequestStub1.called).is.false();
-    assume(processRequestStub2.called).is.true();
-    assume(processRequestStub3.called).is.true();
-    assume(infoLogStub.calledWith(sinon.match.object, 'Finished processing PR')).is.true();
-    assume(createCommentStub.called).is.true();
+    assume(errorLogStub).has.not.been.called();
+    assume(processRequestStub1).has.not.been.called();
+    assume(processRequestStub2).has.been.called();
+    assume(processRequestStub3).has.been.called();
+    assume(infoLogStub).calledWith(sinon.match.object, 'Finished processing PR');
+    assume(createCommentStub).has.been.called();
   });
 
   it('skips plugins that do not process "ready for review" when processing a PR being marked as such',
     async function () {
       mockContext.payload.action = 'ready_for_review';
       await processPR(mockContext);
-      assume(errorLogStub.called).is.false();
-      assume(processRequestStub1.called).is.false();
-      assume(processRequestStub2.called).is.false();
-      assume(processRequestStub3.called).is.true();
-      assume(infoLogStub.calledWith(sinon.match.object, 'Finished processing PR')).is.true();
-      assume(createCommentStub.called).is.true();
+      assume(errorLogStub).has.not.been.called();
+      assume(processRequestStub1).has.not.been.called();
+      assume(processRequestStub2).has.not.been.called();
+      assume(processRequestStub3).has.been.called();
+      assume(infoLogStub).calledWith(sinon.match.object, 'Finished processing PR');
+      assume(createCommentStub).has.been.called();
     });
 
   it('passes down plugin config', async function () {
     await processPR(mockContext);
-    assume(processRequestStub2.calledWithMatch(sinon.match.object, sinon.match.object, sinon.match({
+    assume(processRequestStub2).calledWithMatch(sinon.match.object, sinon.match.object, sinon.match({
       foo: 'bar'
-    }))).is.true();
+    }));
   });
 
   it('does not bail when a plugin fails', async function () {
     const mockError = new Error('mock error');
     processRequestStub1.rejects(mockError);
     await processPR(mockContext);
-    assume(errorLogStub.calledWithMatch(sinon.match({
+    assume(errorLogStub).calledWithMatch(sinon.match({
       error: mockError,
       repository: 'org/repo',
       number: 123,
       plugin: 'mockPlugin1',
       requestId: 'MOCK-ID'
-    }), 'Error running plugin')).is.true();
-    assume(processRequestStub2.called).is.true();
-    assume(infoLogStub.calledWith(sinon.match.object, 'Finished processing PR')).is.true();
-    assume(createCommentStub.called).is.true();
+    }), 'Error running plugin');
+    assume(processRequestStub2).has.been.called();
+    assume(infoLogStub).calledWith(sinon.match.object, 'Finished processing PR');
+    assume(createCommentStub).has.been.called();
   });
 
   it('does not post a comment when no comments are aggregated', async function () {
     MOCK_COMMENT = null;
     await processPR(mockContext);
-    assume(createCommentStub.called).is.false();
+    assume(createCommentStub).has.not.been.called();
   });
 });

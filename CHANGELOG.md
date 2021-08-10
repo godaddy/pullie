@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- **MAJOR:** Convert to ES Modules
+
 ## 5.0.1
 
 - Update dependencies
@@ -132,4 +134,3 @@
 ## 1.0.0
 
 - Birth of pullie
-

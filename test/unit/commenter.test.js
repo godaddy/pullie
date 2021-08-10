@@ -1,6 +1,6 @@
-const assume = require('assume');
+import assume from 'assume';
 
-const Commenter = require('../../commenter');
+import Commenter from '../../commenter.js';
 
 describe('Commenter', function () {
   const commenter = new Commenter();
