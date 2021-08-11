@@ -121,7 +121,7 @@ export default class JiraPlugin extends BasePlugin {
   }
 
   /**
-   * Wrapper of Fetch API
+   * Wrapper of Fetch API, used to allow stubbing for tests
    *
    * @param {string} url URL for request
    * @param {RequestInit} options Request options
