@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 6.0.0-alpha.1
+
+- **MAJOR:** Update to `probot@12`
+
 ## 6.0.0-alpha.0
 
 - **MAJOR:** Convert to ES Modules
