@@ -1,5 +1,5 @@
 /**
- * @typedef {import('./plugins/base')} BasePlugin
+ * @typedef {import('./plugins/base.js')} BasePlugin
  * @typedef {{[key: string]: BasePlugin}} PluginManager
  */
 /**
@@ -28,8 +28,8 @@
  * @param {string} name The name of the invalid plugin
  */
 
-const deepClone = require('clone-deep');
-const deepMerge = require('deepmerge');
+import deepClone from 'clone-deep';
+import deepMerge from 'deepmerge';
 
 /**
  * Process the specified org-level and repo-level config into a merged configuration
@@ -41,7 +41,7 @@ const deepMerge = require('deepmerge');
  * @returns {PullieConfig} The merged config
  * @public
  */
-const processConfig = module.exports = function processConfig(pluginManager, orgConfig, repoConfig, onInvalidPlugin) {
+export default function processConfig(pluginManager, orgConfig, repoConfig, onInvalidPlugin) {
   if (!orgConfig) {
     // Set up a default orgConfig so we can properly transform the repo config below
     orgConfig = {
@@ -83,7 +83,7 @@ const processConfig = module.exports = function processConfig(pluginManager, org
   config.plugins = plugins;
 
   return config;
-};
+}
 
 /**
  * Apply the include list of plugin names and return the merged plugin list
@@ -96,7 +96,7 @@ const processConfig = module.exports = function processConfig(pluginManager, org
  * @returns {PluginList} The filtered list of plugins
  */
 // eslint-disable-next-line max-statements, complexity
-function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvalidPlugin }) {
+export function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvalidPlugin }) {
   const pluginEqual = {
     literal(x, y) {
       if (typeof x !== 'string') return false;
@@ -153,7 +153,7 @@ function applyIncludeList({ pluginManager, orgPlugins, repoIncludeList, onInvali
  * @param {string[]} opts.repoExcludeList A list of plugin names to exclude
  * @returns {PluginList} The filtered list of plugins
  */
-function applyExcludeList({ orgPlugins, repoExcludeList }) {
+export function applyExcludeList({ orgPlugins, repoExcludeList }) {
   return orgPlugins.filter(plugin => {
     if (typeof plugin === 'string') {
       return !repoExcludeList.includes(plugin);
@@ -165,7 +165,3 @@ function applyExcludeList({ orgPlugins, repoExcludeList }) {
     return true;
   });
 }
-
-// For unit testing
-processConfig._applyIncludeList = applyIncludeList;
-processConfig._applyExcludeList = applyExcludeList;

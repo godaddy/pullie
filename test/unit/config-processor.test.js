@@ -1,6 +1,10 @@
-const assume = require('assume');
-const sinon = require('sinon');
-const processConfig = require('../../config-processor');
+import assume from 'assume';
+import assumeSinon from 'assume-sinon';
+import sinon from 'sinon';
+
+import processConfig, { applyExcludeList, applyIncludeList } from '../../config-processor.js';
+
+assume.use(assumeSinon);
 
 /**
  * @typedef {Object} Plugin
@@ -252,12 +256,10 @@ describe('processConfig', function () {
 
     const onInvalidPluginStub = sinon.stub();
     processConfig(mockPluginManager, orgConfig, repoConfig, onInvalidPluginStub);
-    assume(onInvalidPluginStub.calledWith('fake')).is.true();
+    assume(onInvalidPluginStub).calledWith('fake');
   });
 
   describe('.applyIncludeList', function () {
-    const applyIncludeList = processConfig._applyIncludeList;
-
     it('is a function', function () {
       assume(applyIncludeList).is.a('function');
       assume(applyIncludeList).has.length(1);
@@ -434,7 +436,7 @@ describe('processConfig', function () {
           }
         }
       ]);
-      assume(onInvalidPluginStub.calledWith('unknownPlugin')).is.true();
+      assume(onInvalidPluginStub).calledWith('unknownPlugin');
     });
 
     it('merges config of existing object plugins with new object', function () {
@@ -461,16 +463,14 @@ describe('processConfig', function () {
       const orgTwoConfig = /** @type {Plugin} */ (orgPlugins[1]).config;
       const repoTwoConfig = repoIncludeList[0].config;
 
-      assume(mergeConfigStub.calledWithMatch(
+      assume(mergeConfigStub).calledWithMatch(
         orgTwoConfig,
         repoTwoConfig
-      )).is.true();
+      );
     });
   });
 
   describe('.applyExcludeList', function () {
-    const applyExcludeList = processConfig._applyExcludeList;
-
     it('is a function', function () {
       assume(applyExcludeList).is.a('function');
       assume(applyExcludeList).has.length(1);

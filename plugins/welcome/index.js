@@ -1,7 +1,7 @@
-const BasePlugin = require('../base');
-const Commenter = require('../../commenter');
+import BasePlugin from '../base.js';
+import Commenter from '../../commenter.js';
 
-class WelcomePlugin extends BasePlugin {
+export default class WelcomePlugin extends BasePlugin {
   /**
    * Welcome plugin - automatically welcomes new contributors
    *
@@ -50,5 +50,3 @@ class WelcomePlugin extends BasePlugin {
   }
 
 }
-
-module.exports = WelcomePlugin;

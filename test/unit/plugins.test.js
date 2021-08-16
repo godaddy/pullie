@@ -1,6 +1,6 @@
-const assume = require('assume');
+import assume from 'assume';
 
-const Plugins = require('../../plugins');
+import Plugins from '../../plugins/index.js';
 
 describe('Plugins', function () {
   it('Exposes all plugins as an object', function () {

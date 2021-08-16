@@ -1,11 +1,11 @@
 /** @type {(url: string, options?: RequestInit) => Promise<Response>} */
-const fetch = require('node-fetch');
-const BasePlugin = require('../base');
-const Commenter = require('../../commenter');
+import fetch from 'node-fetch';
+import BasePlugin from '../base.js';
+import Commenter from '../../commenter.js';
 
 const HAS_JIRA_TICKET = /([A-Z]+-[1-9][0-9]*)/g;
 
-class JiraPlugin extends BasePlugin {
+export default class JiraPlugin extends BasePlugin {
   constructor() {
     super();
     this.jiraConfig = {
@@ -85,7 +85,7 @@ class JiraPlugin extends BasePlugin {
   async findTicketsAndPost(commenter, ticketIds) {
     const jql = `id in ('${ticketIds.join("', '")}')`;
 
-    const res = await fetch(`${this.jiraConfig.protocol}://${this.jiraConfig.host}/rest/api/2/search`, {
+    const res = await this.fetch(`${this.jiraConfig.protocol}://${this.jiraConfig.host}/rest/api/2/search`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -121,6 +121,18 @@ class JiraPlugin extends BasePlugin {
   }
 
   /**
+   * Wrapper of Fetch API, used to allow stubbing for tests
+   *
+   * @param {string} url URL for request
+   * @param {RequestInit} options Request options
+   * @returns {Response} Response
+   * @private
+   */
+  fetch(url, options) {
+    return fetch(url, options);
+  }
+
+  /**
    * Extract Jira ticket IDs from the specified string
    *
    * @memberof JiraPlugin
@@ -139,5 +151,3 @@ class JiraPlugin extends BasePlugin {
     return ticketIds;
   }
 }
-
-module.exports = JiraPlugin;

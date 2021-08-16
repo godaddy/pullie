@@ -1,12 +1,12 @@
-const arrayShuffle = require('array-shuffle');
-const pReduce = require('p-reduce');
-const BasePlugin = require('../base');
-const Commenter = require('../../commenter');
-const { parseBase64Json } = require('../../utils');
+import arrayShuffle from 'array-shuffle';
+import pReduce from 'p-reduce';
+import BasePlugin from '../base.js';
+import Commenter from '../../commenter.js';
+import { parseBase64Json } from '../../utils.js';
 
 const REVIEWER_REGEX = /([A-Za-z0-9-_]+)@/;
 
-class ReviewerPlugin extends BasePlugin {
+export default class ReviewerPlugin extends BasePlugin {
   /**
    * Reviewer plugin - automatically requests reviews from contributors
    *
@@ -106,7 +106,7 @@ class ReviewerPlugin extends BasePlugin {
   /**
    * Normalize a reviewer list field from package.json
    *
-   * If it is an array, just return the arrray
+   * If it is an array, just return the array
    * If it is a string or object, return a one-element array containing that item
    * Else, return an empty array
    *
@@ -140,7 +140,7 @@ class ReviewerPlugin extends BasePlugin {
    * @param {Number} [howMany] How many reviewers to select, default is all
    * @param {String} [commentFormat] An optional comment format string to use when posting a comment about
    *  the review request
-   * @param {Commenter} commenter Commenter object for aggregating comments to post
+   * @param {Commenter} [commenter] Commenter object for aggregating comments to post
    */
   async requestReviews(context, reviewers, howMany, commentFormat, commenter) { // eslint-disable-line max-params
     if (!reviewers) {
@@ -187,6 +187,7 @@ class ReviewerPlugin extends BasePlugin {
       ...context.repo(),
       path: 'package.json'
     });
+    // @ts-expect-error
     if (pkg.status === 404) return;
     return await parseBase64Json(pkg.data);
   }
@@ -235,5 +236,3 @@ class ReviewerPlugin extends BasePlugin {
     }, []);
   }
 }
-
-module.exports = ReviewerPlugin;

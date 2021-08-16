@@ -4,7 +4,7 @@
  * @abstract
  * @public
  */
-module.exports = class BasePlugin {
+export default class BasePlugin {
   /**
    * Merge the specified overrideConfig on top of the specified base config.
    *
@@ -56,4 +56,4 @@ module.exports = class BasePlugin {
 
     throw new Error('.processRequest not defined');
   }
-};
+}

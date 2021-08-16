@@ -1,12 +1,16 @@
-const assume = require('assume');
-const fs = require('fs');
-const nock = require('nock');
-const path = require('path');
+import assume from 'assume';
+import fs from 'fs';
+import nock from 'nock';
+import path from 'path';
 /** @type {(url: string, options?: RequestInit) => Promise<Response>} */
-const fetch = require('node-fetch');
-const pullieApp = require('../../');
-const { Server, Probot } = require('probot');
-const { assumeValidResponse } = require('./helpers');
+import fetch from 'node-fetch';
+import { fileURLToPath } from 'url';
+import pullieApp from '../../index.js';
+import { Server, Probot } from 'probot';
+import { assumeValidResponse } from './helpers.js';
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const openPRPayload = require('../fixtures/payloads/open-pr.json');
 const mockOrgPullieRC = require('../fixtures/payloads/mock-org-pullierc.json');
 const mockPullieRC = require('../fixtures/payloads/mock-pullierc.json');
@@ -41,6 +45,7 @@ describe('Pullie (integration)', function () {
   let mockCert;
 
   before(function (done) {
+    const __dirname = fileURLToPath(new URL('.', import.meta.url));
     fs.readFile(path.join(__dirname, '../fixtures/mock-key.pem'), (err, cert) => {
       if (err) return done(err);
       mockCert = cert;

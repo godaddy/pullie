@@ -1,22 +1,21 @@
-const assume = require('assume');
-const proxyquire = require('proxyquire');
-const sinon = require('sinon');
+import assume from 'assume';
+import assumeSinon from 'assume-sinon';
+import sinon from 'sinon';
+import JiraPlugin from '../../../plugins/jira/index.js';
+
+assume.use(assumeSinon);
 
 describe('JiraPlugin', function () {
-  let addCommentStub, commenter, fetchStub, JiraPlugin, jiraPlugin;
+  let addCommentStub, commenter, fetchStub, jiraPlugin;
 
   before(function () {
     addCommentStub = sinon.stub();
     commenter = {
       addComment: addCommentStub
     };
-    fetchStub = sinon.stub();
-
-    JiraPlugin =  proxyquire('../../../plugins/jira', {
-      'node-fetch': fetchStub
-    });
 
     jiraPlugin = new JiraPlugin();
+    fetchStub = sinon.stub(jiraPlugin, 'fetch');
   });
 
   after(function () {
@@ -60,7 +59,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.called).is.false();
+      assume(fetchStub).has.not.been.called();
     });
 
     it(`bails out if the PR action is an edit and the title isn't listed as changed`, async function () {
@@ -79,7 +78,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.called).is.false();
+      assume(fetchStub).has.not.been.called();
     });
 
     it('bails out if there are no ticket IDs in the PR title', async function () {
@@ -93,7 +92,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.called).is.false();
+      assume(fetchStub).has.not.been.called();
     });
 
     it('bails out on error from the Jira request', async function () {
@@ -112,7 +111,7 @@ describe('JiraPlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(err).equals(mockError);
-        assume(fetchStub.called).is.true();
+        assume(fetchStub).has.been.called();
       }
     });
 
@@ -131,7 +130,7 @@ describe('JiraPlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: unknown');
-        assume(fetchStub.called).is.true();
+        assume(fetchStub).has.been.called();
       }
     });
 
@@ -153,7 +152,7 @@ describe('JiraPlugin', function () {
       } catch (err) {
         assume(err).is.truthy();
         assume(err.message).contains('Status code: 404');
-        assume(fetchStub.called).is.true();
+        assume(fetchStub).has.been.called();
       }
     });
 
@@ -185,7 +184,7 @@ describe('JiraPlugin', function () {
       }, commenter);
 
       // @ts-ignore
-      assume(fetchStub.calledWithMatch(
+      assume(fetchStub).calledWithMatch(
         // @ts-ignore
         sinon.match.string,
         sinon.match({
@@ -193,8 +192,8 @@ describe('JiraPlugin', function () {
             const body = JSON.parse(strBody);
             return body.jql && body.jql.includes('AB-1234') && !body.jql.includes(',');
           })
-        }))).is.true();
-      assume(addCommentStub.calledWithMatch('\\[AB-1234\\] Mock ticket title')).is.true();
+        }));
+      assume(addCommentStub).calledWithMatch('\\[AB-1234\\] Mock ticket title');
     });
 
     it('correctly parses 2 tickets from a PR and builds a comment with its title', async function () {
@@ -230,7 +229,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.calledWithMatch(
+      assume(fetchStub).calledWithMatch(
         // @ts-ignore
         sinon.match.string,
         sinon.match({
@@ -238,9 +237,9 @@ describe('JiraPlugin', function () {
             const body = JSON.parse(strBody);
             return body.jql && body.jql.includes('AB-1234') && body.jql.includes('FOO-5678') && body.jql.includes(',');
           })
-        }))).is.true();
-      assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
-        .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
+        }));
+      assume(addCommentStub).calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
+        .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')));
     });
 
     it('correctly parses 2 tickets without brackets from a PR and builds a comment with its title', async function () {
@@ -276,7 +275,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.calledWithMatch(
+      assume(fetchStub).calledWithMatch(
         // @ts-ignore
         sinon.match.string,
         sinon.match({
@@ -284,9 +283,9 @@ describe('JiraPlugin', function () {
             const body = JSON.parse(strBody);
             return body.jql && body.jql.includes('AB-1234') && body.jql.includes('FOO-5678') && body.jql.includes(',');
           })
-        }))).is.true();
-      assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
-        .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
+        }));
+      assume(addCommentStub).calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
+        .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')));
     });
 
     it(`bails if action is edit and ticket list hasn't changed`, async function () {
@@ -305,7 +304,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(addCommentStub.called).is.false();
+      assume(addCommentStub).has.not.been.called();
     });
 
     it('correctly parses 2 tickets from a PR edit and builds a comment with its title', async function () {
@@ -346,7 +345,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.calledWithMatch(
+      assume(fetchStub).calledWithMatch(
         // @ts-ignore
         sinon.match.string,
         sinon.match({
@@ -354,9 +353,9 @@ describe('JiraPlugin', function () {
             const body = JSON.parse(strBody);
             return body.jql && body.jql.includes('AB-1234') && body.jql.includes('FOO-5678') && body.jql.includes(',');
           })
-        }))).is.true();
-      assume(addCommentStub.calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
-        .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')))).is.true();
+        }));
+      assume(addCommentStub).calledWithMatch(sinon.match('\\[AB-1234\\] Mock ticket 1 title')
+        .and(sinon.match('\\[FOO-5678\\] Mock ticket 2 title')));
     });
 
     it('does not post when no Jira tickets are actually found in Jira query', async function () {
@@ -379,7 +378,7 @@ describe('JiraPlugin', function () {
         }
       }, commenter);
 
-      assume(fetchStub.calledWithMatch(
+      assume(fetchStub).calledWithMatch(
         // @ts-ignore
         sinon.match.string,
         sinon.match({
@@ -387,8 +386,8 @@ describe('JiraPlugin', function () {
             const body = JSON.parse(strBody);
             return body.jql && body.jql.includes('AB-1234') && body.jql.includes('AB-3456') && body.jql.includes(',');
           })
-        }))).is.true();
-      assume(addCommentStub.called).is.false();
+        }));
+      assume(addCommentStub).has.not.been.called();
     });
   });
 });

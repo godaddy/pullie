@@ -1,10 +1,16 @@
-const handlebars = require('handlebars');
-const fs = require('fs');
+import express from 'express';
+import handlebars from 'handlebars';
+import fs from 'fs';
+import path from 'path';
+import Prism from 'prismjs';
+import loadLanguages from 'prismjs/components/index.js';
+loadLanguages(['json']);
+import resolveCwd from 'resolve-cwd';
+import { fileURLToPath } from 'url';
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const packageJson = require('./package.json');
-const path = require('path');
-const Prism = require('prismjs');
-require('prismjs/components/')(['json']);
-const resolveCwd = require('resolve-cwd');
 
 /**
  * @typedef {import('express').Router} expressRouter
@@ -14,7 +20,8 @@ const resolveCwd = require('resolve-cwd');
  *
  * @param {expressRouter} router Express router to attach routes to
  */
-module.exports = function setupDocsRoutes(router) {
+export default function setupDocsRoutes(router) {
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
   // eslint-disable-next-line no-sync
   const docsSource = fs.readFileSync(path.join(__dirname, 'views/home.hbs'), { encoding: 'utf8' });
   handlebars.registerHelper('code', options => new handlebars.SafeString(
@@ -25,7 +32,7 @@ module.exports = function setupDocsRoutes(router) {
     VERSION: packageJson.version
   });
 
-  router.use('/static', require('express').static(path.join(__dirname, 'static')));
+  router.use('/static', express.static(path.join(__dirname, 'static')));
   router.get('/', (req, res) => {
     res.send(docsHtml);
   });
@@ -35,4 +42,4 @@ module.exports = function setupDocsRoutes(router) {
   router.get('/healthcheck(.html)?', (req, res) => {
     res.send('page ok');
   });
-};
+}
