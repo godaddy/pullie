@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 6.0.0
+
+- **MAJOR:** Convert to ES Modules
+  - Running Pullie directly? No change is required to consume this update
+  - Using wrapper code to run Pullie in Serverless for example? You will probably need to update your wrapper to be ESM as well
+    and apply corresponding shims as needed in your wrapping environment. See [this sample](https://github.com/nponeccop/serverless-openapi-templates/tree/master/esmodules)
+    for an example of how to wrap an ESM handler using the Serverless Framework.
+- **MAJOR:** Update to `probot@12`
+  - For most cases, this is not a breaking change, as Pullie already did not consume any of the changed or removed APIs.
+    However, if you install `probot` in any wrapping code, you should update to use version 12.
+- **MAJOR:** Dropped Node.js 12 support
+  - While Node.js 12 is still supported as an LTS release until mid-2022, Pullie's new ESM update made this a good oportunity
+    to shift our support window to 14 or later. Node.js 14 is the latest LTS release as of August 2021. Pullie is also tested
+    with Node.js 16.
+
 ## 6.0.0-alpha.1
 
 - **MAJOR:** Update to `probot@12`
