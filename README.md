@@ -10,7 +10,7 @@ tickets, requesting reviews, and commenting about a missing required file change
 
 ## System requirements
 
-Pullie runs on public GitHub or on GitHub Enterprise 2.14 or later. It requires Node.js 12 or later.
+Pullie runs on public GitHub or on GitHub Enterprise 2.14 or later. It requires Node.js 14 or later.
 
 ## How to run/deploy
 

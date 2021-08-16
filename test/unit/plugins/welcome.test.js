@@ -7,8 +7,7 @@ assume.use(assumeSinon);
 import WelcomePlugin from '../../../plugins/welcome/index.js';
 import Commenter from '../../../commenter.js';
 
-const sandbox = sinon.createSandbox();
-const addCommentStub = sandbox.stub();
+const addCommentStub = sinon.stub();
 const commenter = {
   addComment: addCommentStub
 };
@@ -17,7 +16,7 @@ const welcomePlugin = new WelcomePlugin();
 
 describe('WelcomePlugin', function () {
   after(function () {
-    sandbox.restore();
+    sinon.restore();
   });
 
   let mockContext;

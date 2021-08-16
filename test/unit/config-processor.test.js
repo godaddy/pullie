@@ -2,9 +2,9 @@ import assume from 'assume';
 import assumeSinon from 'assume-sinon';
 import sinon from 'sinon';
 
-assume.use(assumeSinon);
-
 import processConfig, { applyExcludeList, applyIncludeList } from '../../config-processor.js';
+
+assume.use(assumeSinon);
 
 /**
  * @typedef {Object} Plugin
