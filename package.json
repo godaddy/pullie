@@ -39,7 +39,7 @@
     "diagnostics": "^2.0.2",
     "express": "^4.17.1",
     "handlebars": "^4.7.7",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.0.0",
     "p-reduce": "^3.0.0",
     "prismjs": "^1.24.1",
     "probot": "^12.1.0",
