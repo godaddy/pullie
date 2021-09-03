@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 6.0.1
+
+- Update `node-fetch`
+
 ## 6.0.0
 
 - **MAJOR:** Convert to ES Modules
