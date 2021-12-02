@@ -12,6 +12,7 @@
     "eslint-plugin-json"
   ],
   "rules": {
-    "no-process-env": 0
+    "no-process-env": 0,
+    "eqeqeq": ["error", "always", { "null": "always" }]
   }
 }
