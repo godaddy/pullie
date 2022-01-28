@@ -62,7 +62,7 @@
     "mocha": "^9.0.3",
     "nock": "^13.2.2",
     "nodemon": "^2.0.12",
-    "sinon": "^12.0.1",
+    "sinon": "^13.0.0",
     "smee-client": "^1.2.2"
   },
   "engines": {
