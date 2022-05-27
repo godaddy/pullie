@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 6.0.6
+
+- Update dependencies
+
 ## 6.0.5
 
 - Update dependencies
