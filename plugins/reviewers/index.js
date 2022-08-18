@@ -216,9 +216,7 @@ export default class ReviewerPlugin extends BasePlugin {
       }
       const matches = REVIEWER_REGEX.exec(testSubject);
       if (!matches) return testSubject;
-      return process.env.GITHUB_USER_SUFFIX
-        ? `${matches[1]}${process.env.GITHUB_USER_SUFFIX}`
-        : matches[1];
+      return `${matches[1]}${process.env.GITHUB_USER_SUFFIX || ''}`;
     }).filter(r => {
       if (!r) return false;
       return r !== context.payload.pull_request.user.login;
