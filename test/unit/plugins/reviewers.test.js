@@ -20,6 +20,7 @@ const reviewersPlugin = new ReviewersPlugin();
 describe('ReviewersPlugin', function () {
   afterEach(function () {
     sandbox.restore();
+    delete process.env.GITHUB_USER_SUFFIX;
   });
 
   let mockContext;
@@ -475,6 +476,40 @@ describe('ReviewersPlugin', function () {
       assume(users).eqls([
         'jschmoe',
         'hobjectson'
+      ]);
+    });
+
+    it('properly gets filtered users with suffix from the reviewers list if GITHUB_USER_SUFFIX is set.', async function () {
+      process.env.GITHUB_USER_SUFFIX = '-coolsuffix';
+      userExistsStub.resolves({ status: 204 });
+      userExistsStub
+        .withArgs(
+          sinon.match({
+            username: 'Bob McNoEmail',
+          })
+        )
+        .resolves({ status: 404 });
+      // @ts-ignore
+      const users = await reviewersPlugin.getUsersFromReviewersList(
+        mockContext,
+        [
+          'Joe Schmoe <jschmoe@test.com>',
+          'John Doe <jdoe@test.com>',
+          'Bob McNoEmail',
+          {
+            name: 'Hans Objectson',
+            email: 'hobjectson@test.com',
+          },
+          {
+            name: 'Billy ObjectNoEmailHeimer',
+          },
+          12345
+        ]
+      );
+      assume(users).eqls([
+        'jschmoe-coolsuffix',
+        'jdoe-coolsuffix',
+        'hobjectson-coolsuffix'
       ]);
     });
   });
