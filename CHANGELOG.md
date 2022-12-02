@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 6.1.1
+
+- Update dependencies
+
 ## 6.1.0
 
 - Add support for resolving maintainer emails using a standard suffix in reviewers plugin
