@@ -37,7 +37,7 @@
     "clone-deep": "^4.0.1",
     "deepmerge": "^4.2.2",
     "diagnostics": "^2.0.2",
-    "express": "^4.17.3",
+    "express": "^4.18.2",
     "handlebars": "^4.7.7",
     "node-fetch": "^3.2.0",
     "p-reduce": "^3.0.0",
