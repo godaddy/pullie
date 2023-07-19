@@ -35,7 +35,7 @@
   "dependencies": {
     "array-shuffle": "^3.0.0",
     "clone-deep": "^4.0.1",
-    "deepmerge": "^4.2.2",
+    "deepmerge": "^4.3.0",
     "diagnostics": "^2.0.2",
     "express": "^4.18.2",
     "handlebars": "^4.7.7",
