@@ -4,6 +4,8 @@
 
 # pullie
 
+> ⚠️ **DEPRECATED**: This package is no longer maintained and has been deprecated. Please use an alternative solution or contact the maintainers for more information.
+
 Pullie is a GitHub bot that makes your PRs better. It runs as a GitHub App and receives webhook calls whenever a pull
 request is made against a repo on which the app is installed. Plugins provide handy functionality like linking to Jira
 tickets, requesting reviews, and commenting about a missing required file change.
